@@ -46,7 +46,7 @@ interface VideoSummary {
   likeCount: number
   commentCount: number
   durationSeconds: number
-  isShort: boolean // euristica: durata <= 60s. L'API non espone un flag ufficiale.
+  isShort: boolean 
 }
  
 function parseISO8601Duration(duration: string): number {
@@ -111,15 +111,20 @@ export default defineEventHandler(async (event) => {
     quota = await checkAndConsumeQuota(YOUTUBE_COSTS.videos)
     if (!quota.allowed) throw quotaExceededError()
  
-    const playlistRes = await $fetch<PlaylistItemsResponse>(
-      'https://www.googleapis.com/youtube/v3/playlistItems',
-      { params: { part: 'contentDetails', playlistId: uploadsPlaylistId, maxResults: limit, key: apiKey } }
-    )
+    let playlistRes: PlaylistItemsResponse
+    try {
+      playlistRes = await $fetch<PlaylistItemsResponse>(
+        'https://www.googleapis.com/youtube/v3/playlistItems',
+        { params: { part: 'contentDetails', playlistId: uploadsPlaylistId, maxResults: limit, key: apiKey } }
+      )
+    } catch {
+      await redis.set(cacheKey, [], { ex: CACHE_TTL_SECONDS })
+      return []
+    }
  
     const videoIds = (playlistRes.items ?? []).map((item) => item.contentDetails.videoId)
     if (videoIds.length === 0) return []
  
-    // 3. Statistiche + snippet per tutti i video in una sola chiamata batch
     quota = await checkAndConsumeQuota(YOUTUBE_COSTS.videos)
     if (!quota.allowed) throw quotaExceededError()
  

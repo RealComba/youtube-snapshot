@@ -1,80 +1,49 @@
 <script setup>
-useHead({
-  meta: [
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' }
-  ],
-  link: [
-    { rel: 'icon', href: '/favicon.ico' }
-  ],
-  htmlAttrs: {
-    lang: 'en'
-  }
-})
+    useHead({
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ],
+      link: [
+        { rel: 'icon', href: '/favicon.ico' }
+      ],
+      htmlAttrs: {
+        lang: 'en'
+      }
+    })
+    
+    useSeoMeta({
+      title: 'YouTube Niche Analyzer',
+      description: 'Analizza canali YouTube: iscritti, views, video e trend dicrescita nel tempo.',
+      ogTitle: 'YouTube Niche Analyzer',
+      ogDescription: 'Analizza canali YouTube: iscritti, views, video e trend di crescita nel tempo.'
+    })
+    </script>
+    
+    <template>
+      <UApp>
+        <UHeader>
+          <template #left>
+            <NuxtLink to="/" class="flex items-center gap-2 font-bold text-lg">
+              <UIcon name="i-lucide-bar-chart-3" class="size-6 text-primary" />
+              YT Analyzer
+            </NuxtLink>
+          </template>
+    
+          <template #right>
+            <UColorModeButton />
+          </template>
+        </UHeader>
 
-const title = 'Nuxt Starter Template'
-const description = 'A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours.'
+        <UMain>
+          <NuxtPage />
+        </UMain>
 
-useSeoMeta({
-  title,
-  description,
-  ogTitle: title,
-  ogDescription: description,
-  ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/starter-light.png',
-  twitterCard: 'summary_large_image'
-})
-</script>
-
-<template>
-  <UApp>
-    <UHeader>
-      <template #left>
-        <NuxtLink
-          to="/"
-          class="focus-visible:outline-3 outline-primary/25 rounded-md p-1 -ms-1"
-        >
-          <AppLogo class="w-auto h-6 shrink-0" />
-        </NuxtLink>
-
-        <TemplateMenu />
-      </template>
-
-      <template #right>
-        <UColorModeButton />
-
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
-      </template>
-    </UHeader>
-
-    <UMain>
-      <NuxtPage />
-    </UMain>
-
-    <USeparator icon="i-simple-icons-nuxtdotjs" />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          Built with Nuxt UI • © {{ new Date().getFullYear() }}
-        </p>
-      </template>
-
-      <template #right>
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
-      </template>
-    </UFooter>
-  </UApp>
-</template>
+        <UFooter>
+          <template #left>
+            <p class="text-sm text-muted">
+              YouTube Niche Analyzer • © {{ new Date().getFullYear() }}
+            </p>
+          </template>
+        </UFooter>
+      </UApp>
+    </template>
