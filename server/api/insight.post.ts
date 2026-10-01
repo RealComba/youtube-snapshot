@@ -33,8 +33,7 @@ interface InsightResult {
   generatedAt: string
 }
 
-const CACHE_TTL_SECONDS = 60 * 60 * 24 
-
+const CACHE_TTL_SECONDS = 60 * 60 * 24
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
 
@@ -45,12 +44,15 @@ Write a short, concrete, specific analysis in 3-4 sentences, in English — neve
 Point out real patterns: upload cadence, the mix of Shorts vs long-form videos, which video is outperforming the others and a hypothesis for why. If the data is insufficient for a solid pattern, say so honestly instead of inventing a weak observation.`
 
 export default defineEventHandler(async (event) => {
-  const { channelId } = getQuery(event)
+  const { channel, videos } = await readBody<{
+    channel: ChannelPayload
+    videos: VideoSummary[]
+  }>(event)
 
-  if (!channelId) {
+  if (!channel?.id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Param "channelId" needed (UCxxxxxxxx)'
+      statusMessage: 'Channel data is required'
     })
   }
 
@@ -64,18 +66,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const cacheKey = `yt:insight:${channelId}`
+  const cacheKey = `yt:insight:${channel.id}`
   const redis = useRedis()
   const cached = await redis.get<InsightResult>(cacheKey)
 
   if (cached) {
-    return { channelId: String(channelId), ...cached, cached: true }
+    return { channelId: channel.id, ...cached, cached: true }
   }
-
-  const [channel, videos] = await Promise.all([
-    $fetch<ChannelPayload>('/api/channel', { params: { id: channelId } }),
-    $fetch<VideoSummary[]>('/api/videos', { params: { channelId, maxResults: 10 } })
-  ])
 
   const prompt = buildInsightPrompt(channel, videos)
   const config = useRuntimeConfig()
@@ -119,7 +116,7 @@ export default defineEventHandler(async (event) => {
 
     await redis.set(cacheKey, result, { ex: CACHE_TTL_SECONDS })
 
-    return { channelId: String(channelId), ...result, cached: false }
+    return { channelId: channel.id, ...result, cached: false }
   }
   catch (error: any) {
     if (error.statusCode) throw error

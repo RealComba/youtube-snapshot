@@ -35,6 +35,7 @@
         <!-- Risultati -->
         <div v-if="!store.loading && store.channel" class="space-y-8">
           <StatsOverview />
+          <AiInsightCard />
           <TopVideosList />
         </div>
       </UContainer>

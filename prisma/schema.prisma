@@ -27,7 +27,7 @@ model ChannelSnapshot {
   channelId       String
   channel         Channel  @relation(fields: [channelId], references: [id])
   subscriberCount Int
-  viewCount       Int
+  viewCount       BigInt
   videoCount      Int
   capturedAt      DateTime @default(now())
 

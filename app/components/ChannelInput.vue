@@ -5,7 +5,7 @@ const handle = ref('')
 function onSearch() {
     const value = handle.value.trim()
     if (!value) return
-    store.search(value)
+    store.search(extractHandle(value))
 }
 
 const examples = [
@@ -18,6 +18,16 @@ function searchExample(h: string) {
     handle.value = h
     store.search(h)
 }
+
+function extractHandle(input: string): string {
+    const trimmed = input.trim()
+
+   const urlMatch = trimmed.match(/youtube\.com\/@([w.-]+)/)
+   if (urlMatch?.[1]) return urlMatch[1]
+
+   return trimmed
+}
+
 </script>
 
 <template>
