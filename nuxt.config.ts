@@ -10,7 +10,8 @@ export default defineNuxtConfig({
     youtubeApiKey: process.env.YOUTUBE_API_KEY, //solo server
     upstashRedisUrl: process.env.UPSTASH_REDIS_REST_URL,
     upstashRedisToken: process.env.UPSTASH_REDIS_REST_TOKEN,
-    databaseUrl: process.env.DIRECT_URL
+    databaseUrl: process.env.DIRECT_URL,
+    geminiApiKey: process.env.GEMINI_API_KEY,
   },
 
   devtools: {
