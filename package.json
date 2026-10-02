@@ -20,6 +20,7 @@
     "@upstash/redis": "^1.39.0",
     "dotenv": "^18.0.4",
     "nuxt": "^4.5.2",
+    "nuxt-auth-utils": "^0.5.30",
     "pg": "^8.23.0",
     "pinia": "^4.0.3",
     "tailwindcss": "^4.3.3"

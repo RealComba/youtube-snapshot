@@ -33,6 +33,7 @@ useSeoMeta({
         <NuxtLink to="/compare">
           <UButton label="Compare" icon="i-lucide-git-compare-arrows" variant="ghost" size="sm" />
         </NuxtLink>
+        <UserAuthButton />
         <UColorModeButton />
       </template>
     </UHeader>

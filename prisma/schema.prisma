@@ -12,14 +12,44 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id        String   @id 
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+
+  ownChannelId String?  @unique
+  ownChannel   Channel? @relation("OwnChannel", fields: [ownChannelId], references: [id])
+
+  trackedChannels TrackedChannel[]
+}
+
+model TrackedChannel {
+  id        String   @id @default(cuid())
+  userId    String
+  channelId String
+  user      User     @relation(fields: [userId], references: [id])
+  channel   Channel  @relation(fields: [channelId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, channelId])
+}
+
+
+
+
 model Channel {
-  id        String   @id // YouTube channel ID, es. UCxxxxxxxx
+  id        String   @id 
   handle    String?
   title     String
   thumbnail String
   createdAt DateTime @default(now())
 
   snapshots ChannelSnapshot[]
+  ownedBy      User?             @relation("OwnChannel")
+  trackedBy    TrackedChannel[]
+
 }
 
 model ChannelSnapshot {
