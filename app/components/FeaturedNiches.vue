@@ -17,7 +17,7 @@ const creators: FeaturedCreator[] = [
     handle: '@mkbhd',
     name: 'Marques Brownlee',
     niche: 'Tech',
-    avatar: 'https://yt3.googleusercontent.com/lkH37D712tiyphnu0Id0D5MwwQ7IRuwgQLVD05iMXlCFyjYLeYTISDaAcNuParWi0-P2NmHg=s176-c-k-c0x00ffffff-no-rj',
+    avatar: 'https://unavatar.io/youtube/mkbhd',
     subs: '19M+',
     highlight: 'Clean aesthetic, gadget benchmarks & high production value'
   },
@@ -25,7 +25,7 @@ const creators: FeaturedCreator[] = [
     handle: '@MrBeast',
     name: 'MrBeast',
     niche: 'Viral',
-    avatar: 'https://yt3.googleusercontent.com/fxGKYucJAVme-Yz4fsdCroCFCrKafoPaoCWJnhP5ph4Wmg3mGmyPkyFaW0q-AqdRwAeYphqq=s176-c-k-c0x00ffffff-no-rj',
+    avatar: 'https://unavatar.io/youtube/MrBeast',
     subs: '350M+',
     highlight: 'High retention pacing, curiosity hooks & extreme challenges'
   },
@@ -33,7 +33,7 @@ const creators: FeaturedCreator[] = [
     handle: '@veritasium',
     name: 'Veritasium',
     niche: 'Education',
-    avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_k4m1K9q9fE44bZzBqQ9z_n7sV5=s176-c-k-c0x00ffffff-no-rj',
+    avatar: 'https://unavatar.io/youtube/veritasium',
     subs: '16M+',
     highlight: 'Deep inquiry, scientific misconceptions & long-tail search'
   },
@@ -41,7 +41,7 @@ const creators: FeaturedCreator[] = [
     handle: '@Fireship',
     name: 'Fireship',
     niche: 'Tech',
-    avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_mC8e5YhKj4x5mX2=s176-c-k-c0x00ffffff-no-rj',
+    avatar: 'https://unavatar.io/youtube/Fireship',
     subs: '3.5M+',
     highlight: 'Ultra-fast pacing, code in 100 seconds & meme velocity'
   },
@@ -49,7 +49,7 @@ const creators: FeaturedCreator[] = [
     handle: '@AliAbdaal',
     name: 'Ali Abdaal',
     niche: 'Finance',
-    avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_nH1zB3m7Vq9=s176-c-k-c0x00ffffff-no-rj',
+    avatar: 'https://unavatar.io/youtube/AliAbdaal',
     subs: '5.8M+',
     highlight: 'Productivity workflows, passive income & book breakdowns'
   },
@@ -57,7 +57,7 @@ const creators: FeaturedCreator[] = [
     handle: '@RyanTrahan',
     name: 'Ryan Trahan',
     niche: 'Viral',
-    avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_k91bZ3=s176-c-k-c0x00ffffff-no-rj',
+    avatar: 'https://unavatar.io/youtube/RyanTrahan',
     subs: '16.5M+',
     highlight: 'Penny challenge storytelling & authentic audience connection'
   }
