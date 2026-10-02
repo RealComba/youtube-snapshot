@@ -64,7 +64,7 @@ export const useChannelStore = defineStore('channel', () => {
             channel.value = channelData
 
             const videosData = await $fetch<VideoData[]>('/api/videos', {
-                params: { channelId: channelData.id }
+                params: { channelId: channelData.id, maxResults: 50 }
             })
             videos.value = videosData
         } catch (err: any) {

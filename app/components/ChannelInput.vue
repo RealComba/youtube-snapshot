@@ -22,7 +22,7 @@ function searchExample(h: string) {
 function extractHandle(input: string): string {
     const trimmed = input.trim()
 
-   const urlMatch = trimmed.match(/youtube\.com\/@([w.-]+)/)
+   const urlMatch = trimmed.match(/youtube\.com\/@([\w.-]+)/)
    if (urlMatch?.[1]) return urlMatch[1]
 
    return trimmed
@@ -33,13 +33,13 @@ function extractHandle(input: string): string {
 <template>
     <div class="flex flex-col gap-4">
         <form class="flex items-center gap-2" @submit.prevent="onSearch">
-            <UInput v-model="handle" placeholder="@channelname" icon="i-lucide-search" size="xl" class="flex-1"
+            <UInput v-model="handle" placeholder="@channelname or YouTube URL" icon="i-lucide-search" size="xl" class="flex-1"
                 :disabled="store.loading" />
-            <UButton type="submit" label="Analizza" icon="i-lucide-bar-chart-3" size="xl" :loading="store.loading" />
+            <UButton type="submit" label="Analyze" icon="i-lucide-bar-chart-3" size="xl" :loading="store.loading" />
         </form>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-sm text-muted">Prova con:</span>
+            <span class="text-sm text-muted">Try:</span>
             <UButton v-for="ex in examples" :key="ex.handle" :label="ex.label" size="xs" color="neutral"
                 variant="subtle" :disabled="store.loading" @click="searchExample(ex.handle)" />
         </div>

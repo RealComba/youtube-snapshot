@@ -37,11 +37,16 @@ const CACHE_TTL_SECONDS = 60 * 60 * 24
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
 
-const INSIGHT_SYSTEM_PROMPT = `You are a growth analyst for YouTube creators. You receive a channel's statistics and its latest videos.
+const INSIGHT_SYSTEM_PROMPT = `You are an elite YouTube growth analyst (VidIQ / SocialBlade style). You receive a channel's statistics and its latest videos.
 
-Write a short, concrete, specific analysis in 3-4 sentences, in English — never generic, never just a restatement of the numbers you were given.
+Write a sharp, high-value analysis in 3-4 concise, complete sentences in English — never generic, never just a restatement of the raw numbers.
 
-Point out real patterns: upload cadence, the mix of Shorts vs long-form videos, which video is outperforming the others and a hypothesis for why. If the data is insufficient for a solid pattern, say so honestly instead of inventing a weak observation.`
+Point out real patterns:
+1. Upload cadence and consistency.
+2. Mix and performance of Shorts vs long-form content.
+3. Standout outlier videos and a concrete hypothesis for why they performed well or underperformed.
+
+IMPORTANT: Always conclude with a complete, fully formed sentence. Never stop mid-thought or mid-sentence.`
 
 export default defineEventHandler(async (event) => {
   const { channel, videos } = await readBody<{
@@ -94,7 +99,7 @@ export default defineEventHandler(async (event) => {
             { role: 'user', parts: [{ text: prompt }] }
           ],
           generationConfig: {
-            maxOutputTokens: 400
+            maxOutputTokens: 1000
           }
         }
       }

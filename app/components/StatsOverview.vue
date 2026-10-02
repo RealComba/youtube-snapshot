@@ -26,7 +26,7 @@ const { formatNumber } = useFormatters()
                     {{ formatNumber(store.channel.subscriberCount) }}
                 </p>
                 <p class="text-sm text-muted">
-                    Iscritti
+                    Subscribers
                 </p>
             </div>
 
@@ -35,7 +35,7 @@ const { formatNumber } = useFormatters()
                     {{ formatNumber(store.channel.viewCount) }}
                 </p>
                 <p class="text-sm text-muted">
-                    Views totali
+                    Total Views
                 </p>
             </div>
 
@@ -44,7 +44,7 @@ const { formatNumber } = useFormatters()
                     {{ formatNumber(store.channel.videoCount) }}
                 </p>
                 <p class="text-sm text-muted">
-                    Video
+                    Videos
                 </p>
             </div>
 
@@ -53,7 +53,7 @@ const { formatNumber } = useFormatters()
                     {{ formatNumber(store.avgViews) }}
                 </p>
                 <p class="text-sm text-muted">
-                    Media views
+                    Avg Views / Upload
                 </p>
             </div>
         </div>
