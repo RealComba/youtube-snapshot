@@ -25,7 +25,7 @@ export function renderMarkdown(content: string): string {
   html = html.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>')
 
   // Bullet items
-  html = html.replace(/^[•\-\*] (.*$)/gim, '<li class="ml-4 list-disc text-sm text-neutral-700 dark:text-neutral-300 my-0.5">$1</li>')
+  html = html.replace(/^[•*-] (.*$)/gim, '<li class="ml-4 list-disc text-sm text-neutral-700 dark:text-neutral-300 my-0.5">$1</li>')
 
   // Numbered list
   html = html.replace(/^\d+\. (.*$)/gim, '<li class="ml-4 list-decimal text-sm text-neutral-700 dark:text-neutral-300 my-0.5">$1</li>')

@@ -6,8 +6,8 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "lint": "eslint .",
+    "postinstall": "prisma generate && nuxt prepare",
+    "lint": "eslint . --ignore-pattern \"export/**\"",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {

@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 4. Save user message to database
-  const userMessage = await prisma.chatMessage.create({
+  await prisma.chatMessage.create({
     data: {
       sessionId: session.id,
       role: 'user',
