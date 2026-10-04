@@ -38,7 +38,7 @@ function extractHandle(input: string): string {
             <UButton type="submit" label="Analyze" icon="i-lucide-bar-chart-3" size="xl" :loading="store.loading" />
         </form>
 
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center justify-center gap-2 flex-wrap mt-2">
             <span class="text-sm text-muted">Try:</span>
             <UButton v-for="ex in examples" :key="ex.handle" :label="ex.label" size="xs" color="neutral"
                 variant="subtle" :disabled="store.loading" @click="searchExample(ex.handle)" />

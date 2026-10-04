@@ -1,5 +1,6 @@
 import { useRedis } from '../utils/redis'
 import { checkAndConsumeQuota, YOUTUBE_COSTS } from '../utils/quota'
+import { checkAndConsumeUserYtQuota } from '../utils/ytLimit'
 import { checkRateLimit } from '../utils/rateLimit'
 import { usePrisma } from '../utils/prisma'
 
@@ -52,6 +53,17 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
   const cached = await redis.get<ChannelPayload>(cacheKey)
   if (cached) {
     return cached
+  }
+
+  const session = await getUserSession(event)
+  if (session?.user?.id) {
+    const userQuota = await checkAndConsumeUserYtQuota(session.user.id, 1)
+    if (!userQuota.allowed) {
+      throw createError({
+        statusCode: 429,
+        statusMessage: 'Daily YouTube quota reached (300/300 units used). Quota resets at midnight.'
+      })
+    }
   }
 
   const quota = await checkAndConsumeQuota(YOUTUBE_COSTS.channels)

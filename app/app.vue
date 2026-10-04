@@ -54,23 +54,9 @@ useSeoMeta({
     <div v-else class="min-h-screen flex flex-col">
       <UHeader>
         <template #left>
-          <NuxtLink to="/" class="flex items-center gap-2 font-bold text-lg">
-            <UIcon name="i-lucide-bar-chart-3" class="size-6 text-primary" />
-            YT Analyzer
-          </NuxtLink>
         </template>
 
         <template #right>
-          <a href="/auth/google">
-            <UButton
-              label="Connect YouTube"
-              icon="i-simple-icons-youtube"
-              variant="outline"
-              color="neutral"
-              size="sm"
-            />
-          </a>
-          <UColorModeButton />
         </template>
       </UHeader>
 
@@ -81,7 +67,6 @@ useSeoMeta({
       <UFooter>
         <template #left>
           <p class="text-sm text-muted">
-            YouTube Niche Analyzer • © {{ new Date().getFullYear() }}
           </p>
         </template>
       </UFooter>

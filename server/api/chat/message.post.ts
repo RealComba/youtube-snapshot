@@ -9,6 +9,7 @@ interface ChatMessagePayload {
 
 interface GeminiGenerateContentResponse {
   candidates?: Array<{
+    finishReason?: string
     content: {
       parts: Array<{ text?: string }>
     }
@@ -146,26 +147,35 @@ Tailor recommendations specifically to this creator's scale and niche whenever r
           },
           contents,
           generationConfig: {
-            maxOutputTokens: 1500,
-            thinkingConfig: {
-              thinkingBudget: 512
-            }
-          }
+            maxOutputTokens: 4096
+          },
+          safetySettings: [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+          ]
         }
       }
     )
-
     const assistantText = response.candidates?.[0]?.content?.parts
       ?.map((p) => p.text ?? '')
       .join('')
       .trim()
 
     if (!assistantText) {
+      console.error('Gemini API Error Response:', JSON.stringify(response, null, 2))
+      const finishReason = response.candidates?.[0]?.finishReason
+      const errorMessage = finishReason === 'SAFETY' 
+        ? 'Response blocked by AI safety filters.' 
+        : `Empty response received from AI model. (Finish reason: ${finishReason || 'unknown'})`
+        
       throw createError({
         statusCode: 502,
-        statusMessage: 'Empty response received from AI model.'
+        statusMessage: errorMessage
       })
     }
+
 
     // 8. Save assistant message to database
     const assistantMessage = await prisma.chatMessage.create({

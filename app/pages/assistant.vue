@@ -33,6 +33,17 @@ const activeSession = ref<FullSession | null>(null)
 const loadingSessions = ref(true)
 const loadingMessages = ref(false)
 const sending = ref(false)
+const thinkingSeconds = ref(0)
+let thinkingTimer: ReturnType<typeof setInterval> | null = null
+
+const thinkingPhrase = computed(() => {
+  const s = thinkingSeconds.value
+  if (s < 3) return 'Analyzing channel metrics & niche patterns...'
+  if (s < 7) return 'Drafting high-converting title hooks & blueprints...'
+  if (s < 12) return 'Polishing strategy & retention breakdown...'
+  return 'Finalizing comprehensive growth blueprint...'
+})
+
 const inputMessage = ref('')
 const messageContainer = ref<HTMLElement | null>(null)
 const sidebarOpen = ref(true)
@@ -160,6 +171,11 @@ async function sendMessage(promptOverride?: string) {
 
   inputMessage.value = ''
   sending.value = true
+  thinkingSeconds.value = 0
+  if (thinkingTimer) clearInterval(thinkingTimer)
+  thinkingTimer = setInterval(() => {
+    thinkingSeconds.value++
+  }, 1000)
 
   // Optimistic user message in UI
   const tempUserMsg: MessageItem = {
@@ -197,6 +213,11 @@ async function sendMessage(promptOverride?: string) {
       quota.value.remaining = res.remainingQuota
       quota.value.totalUsed = quota.value.limit - res.remainingQuota
     }
+    
+    // Notify global listeners (e.g. sidebar)
+    if (import.meta.client) {
+      window.dispatchEvent(new Event('quota-updated'))
+    }
 
     // Refresh session title in sidebar if updated
     const currentSession = sessions.value.find(s => s.id === activeSessionId.value)
@@ -213,11 +234,15 @@ async function sendMessage(promptOverride?: string) {
         id: `err-${Date.now()}`,
         sessionId: activeSessionId.value,
         role: 'assistant',
-        content: `⚠️ **Error**: ${errorMsg}`,
+        content: `**Error**: ${errorMsg}`,
         createdAt: new Date().toISOString()
       })
     }
   } finally {
+    if (thinkingTimer) {
+      clearInterval(thinkingTimer)
+      thinkingTimer = null
+    }
     sending.value = false
     scrollToBottom()
   }
@@ -363,14 +388,7 @@ onMounted(async () => {
         </div>
 
         <div class="flex items-center gap-2">
-          <UBadge
-            v-if="user?.ownChannel"
-            label="Channel Context Active"
-            color="primary"
-            variant="subtle"
-            size="xs"
-            icon="i-simple-icons-youtube"
-          />
+          
         </div>
       </header>
 
@@ -431,26 +449,16 @@ onMounted(async () => {
             class="flex gap-3"
             :class="msg.role === 'user' ? 'justify-end' : 'justify-start'"
           >
-            <!-- Assistant Avatar -->
-            <div
-              v-if="msg.role === 'assistant'"
-              class="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-xs"
-            >
-              <UIcon name="i-lucide-sparkles" class="size-4" />
-            </div>
 
             <!-- Message Body -->
             <div
-              class="max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 text-sm space-y-2 shadow-xs"
+              class="max-w-[85%] sm:max-w-[75%] text-sm space-y-2 ml-6"
               :class="msg.role === 'user'
-                ? 'bg-primary text-white rounded-br-xs font-medium'
-                : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-bl-xs'"
+                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-xl px-3 py-2 shadow-xs'
+                : 'bg-transparent text-neutral-800 dark:text-neutral-200 mt-0.5 pb-2 fade-in-slow'"
             >
               <!-- Message Header on Assistant -->
-              <div v-if="msg.role === 'assistant'" class="flex items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800/80 pb-1.5">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-primary">
-                  Strategy Coach (Gemini Reasoning)
-                </span>
+              <div v-if="msg.role === 'assistant'" class="flex items-center justify-between gap-4 pb-2">
                 <button
                   type="button"
                   class="text-[10px] text-muted hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
@@ -471,40 +479,34 @@ onMounted(async () => {
                 {{ msg.content }}
               </p>
 
-              <!-- Timestamp -->
-              <div
-                class="text-[9px] pt-1"
-                :class="msg.role === 'user' ? 'text-white/70 text-right' : 'text-muted text-right'"
-              >
-                {{ new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
-              </div>
+
             </div>
 
-            <!-- User Avatar -->
-            <div
-              v-if="msg.role === 'user'"
-              class="size-8 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800 shrink-0 ring-2 ring-primary/30"
-            >
-              <img
-                v-if="user?.image"
-                :src="user.image"
-                :alt="user.name || 'User'"
-                class="w-full h-full object-cover"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center font-bold text-xs text-muted">
-                {{ (user?.name || 'U').charAt(0) }}
-              </div>
-            </div>
+
           </div>
 
-          <!-- Typing Indicator -->
-          <div v-if="sending" class="flex gap-3 items-center">
-            <div class="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 animate-pulse">
-              <UIcon name="i-lucide-sparkles" class="size-4 animate-spin" />
-            </div>
-            <div class="p-3 rounded-2xl rounded-bl-xs bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs text-muted flex items-center gap-2 shadow-xs">
-              <span class="size-2 rounded-full bg-primary animate-ping"></span>
-              <span>Thinking & formulating YouTube growth blueprint...</span>
+          <!-- Claude-Style Inline Typing Indicator -->
+          <div v-if="sending" class="flex gap-4 items-start transition-all duration-300">
+            
+            <div class="flex flex-col min-w-0 mt-0.5">
+               
+               <div class="flex flex-col mt-1 gap-1">
+                 <div class="flex items-center gap-3 h-5">
+                    <div class="flex space-x-1.5 items-center opacity-60">
+                      <div class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce" style="animation-duration: 0.8s; animation-delay: 0s"></div>
+                      <div class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce" style="animation-duration: 0.8s; animation-delay: 0.15s"></div>
+                      <div class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce" style="animation-duration: 0.8s; animation-delay: 0.3s"></div>
+                    </div>
+                                     <span class="text-[12px] text-muted">{{ thinkingSeconds }}s</span>
+
+                    
+                    <Transition name="fade">
+                      <span v-if="thinkingSeconds >= 3" class="text-xs text-muted font-medium italic">
+                        {{ thinkingPhrase }}
+                      </span>
+                    </Transition>
+                 </div>
+               </div>
             </div>
           </div>
         </template>
@@ -517,15 +519,15 @@ onMounted(async () => {
             <textarea
               v-model="inputMessage"
               rows="1"
-              placeholder="Ask for title ideas, audience retention advice, or competitor critique... (Enter to send)"
-              class="w-full resize-none rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all pr-12 max-h-32"
+              placeholder="Ask for title ideas, audience retention advice, or competitor critique..."
+              class="w-full resize-none rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all pr-12 max-h-32"
               :disabled="sending"
               @keydown="handleKeydown"
             />
 
             <button
               type="submit"
-              class="absolute right-2 p-2 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
+              class="flex items-center justify-center absolute right-2 p-2 rounded-full bg-primary hover:bg-primary/90 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
               :disabled="!inputMessage.trim() || sending"
               title="Send message"
             >
@@ -533,16 +535,28 @@ onMounted(async () => {
               <UIcon v-else name="i-lucide-loader-2" class="size-4 animate-spin" />
             </button>
           </form>
-
-          <div class="flex items-center justify-between text-[11px] text-muted px-1">
-            <span>Press <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 font-mono text-[9px]">Enter</kbd> to send, <kbd class="px-1 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 font-mono text-[9px]">Shift+Enter</kbd> for new line</span>
-            <span class="flex items-center gap-1">
-              <UIcon name="i-lucide-shield-check" class="size-3 text-emerald-500" />
-              Protected by 30 Daily AI Credits
-            </span>
-          </div>
         </div>
       </div>
     </main>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@keyframes fadeInSlow {
+  0% { opacity: 0; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.fade-in-slow {
+  animation: fadeInSlow 0.6s ease-out forwards;
+}
+</style>

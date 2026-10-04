@@ -115,15 +115,18 @@ onUnmounted(() => {
         Get comprehensive channel audits, diagnose viral outlier videos, benchmark competitors, and get tailored growth strategies from Gemini AI.
       </p>
 
-      <!-- Main CTA Button (High-contrast white button with red YouTube logo) -->
+      <!-- Main CTA Button (Bluish theme highlighting the red YouTube logo) -->
       <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a href="/auth/google">
           <button
             type="button"
-            class="inline-flex items-center gap-3 px-8 py-3.5 rounded-xl font-bold text-base text-neutral-900 bg-white hover:bg-neutral-100 border border-neutral-200 dark:border-neutral-700 shadow-xl shadow-neutral-900/10 dark:shadow-black/40 transition-all cursor-pointer hover:scale-[1.02]"
+            class="inline-flex items-center gap-3 px-6 py-3.5 rounded-xl font-bold text-base text-white bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-600/25 transition-all cursor-pointer hover:scale-[1.02]"
           >
-            <UIcon name="i-simple-icons-youtube" class="size-6 text-red-600 shrink-0" />
-            <span>Connect YouTube</span>
+            <span>Connect with</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white text-neutral-900 font-extrabold text-sm shadow-xs">
+              <UIcon name="i-simple-icons-youtube" class="size-4 text-red-600" />
+              YouTube
+            </span>
           </button>
         </a>
       </div>
@@ -140,21 +143,6 @@ onUnmounted(() => {
       @mouseenter="isPaused = true"
       @mouseleave="isPaused = false"
     >
-      <!-- Carousel Tabs (Bluish theme) -->
-      <div class="flex items-center justify-center gap-2 flex-wrap border-b border-neutral-200 dark:border-neutral-800 pb-4">
-        <button
-          v-for="(slide, index) in slides"
-          :key="slide.id"
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
-          :class="currentSlide === index
-            ? 'bg-blue-600 text-white shadow-sm'
-            : 'text-muted hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50'"
-          @click="goToSlide(index)"
-        >
-          <UIcon :name="slide.icon" class="size-3.5" />
-          <span>{{ slide.tag }}</span>
-        </button>
-      </div>
 
       <!-- Animated Slide Transition Container -->
       <div class="relative min-h-[320px]">

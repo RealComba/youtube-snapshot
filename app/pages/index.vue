@@ -2,24 +2,26 @@
 const store = useChannelStore()
 const { loggedIn, user } = useUserSession()
 
+
 onMounted(() => {
-  if (loggedIn.value && !store.channel && !store.loading) {
-    const target = user.value?.ownChannel?.handle || user.value?.ownChannel?.id || '@mkbhd'
-    store.search(target)
-  }
+    // Clear any previously searched channel when entering the analyzer
+    if (store.channel) {
+        store.channel = null
+        store.videos = []
+    }
 })
 </script>
 
 <template>
   <div>
     <div v-if="loggedIn" class="py-8 px-4 sm:px-6 max-w-6xl mx-auto space-y-8">
-      <div class="space-y-4">
+      <div :class="[!store.channel && !store.loading ? 'flex flex-col items-center text-center mt-12 mb-16' : 'space-y-4']">
         <div>
-          <h1 class="text-2xl font-bold tracking-tight">Channel Analyzer</h1>
-          <p class="text-sm text-muted">Inspect any creator, competitor, or paste a YouTube URL to view in-depth
+          <h1 class="font-bold tracking-tight transition-all" :class="[!store.channel && !store.loading ? 'text-4xl' : 'text-2xl']">Channel Analyzer</h1>
+          <p class="text-muted transition-all mt-2" :class="[!store.channel && !store.loading ? 'text-base max-w-md mx-auto' : 'text-sm']">Inspect any creator, competitor, or paste a YouTube URL to view in-depth
             performance.</p>
         </div>
-        <div class="max-w-xl">
+        <div :class="[!store.channel && !store.loading ? 'max-w-2xl w-full mx-auto mt-8' : 'max-w-xl']">
           <ChannelInput />
         </div>
       </div>

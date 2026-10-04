@@ -68,7 +68,8 @@ const filteredCreators = computed(() => {
   return creators.filter(c => c.niche === activeCategory.value)
 })
 
-function selectCreator(handle: string) {
+async function selectCreator(handle: string) {
+  await navigateTo('/')
   store.search(handle)
 }
 </script>
@@ -107,7 +108,7 @@ function selectCreator(handle: string) {
         class="cursor-pointer group"
         @click="selectCreator(creator.handle)"
       >
-        <UCard class="h-full transition-all group-hover:border-primary/50 group-hover:shadow-md">
+        <UCard class="h-full transition-all group-hover:border-primary/50 group-hover:shadow-md" >
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-center gap-3">
               <UAvatar
@@ -120,18 +121,19 @@ function selectCreator(handle: string) {
                 <h3 class="font-bold text-sm group-hover:text-primary transition-colors">
                   {{ creator.name }}
                 </h3>
-                <p class="text-xs text-muted">{{ creator.handle }}</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <p class="text-xs text-muted">{{ creator.handle }}</p>
+                  <UBadge :label="creator.niche" color="neutral" variant="soft" size="xs" class="text-[9px] px-1.5 py-0" />
+                </div>
               </div>
             </div>
-
-            <UBadge :label="creator.niche" color="neutral" variant="subtle" size="xs" />
           </div>
 
-          <p class="text-xs text-muted mt-3 line-clamp-2">
+          <p class="text-xs text-muted mt-3 mb-2 flex-1 line-clamp-2">
             {{ creator.highlight }}
           </p>
 
-          <div class="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs">
+          <div class="mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs">
             <span class="font-semibold text-primary">{{ creator.subs }} subs</span>
             <span class="text-muted flex items-center gap-1 group-hover:text-primary transition-colors">
               Analyze Channel

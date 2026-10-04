@@ -1,3 +1,5 @@
+import { checkAndConsumeUserYtQuota } from '../utils/ytLimit'
+
 interface ChannelContentDetailsResponse {
   items?: Array<{
     contentDetails: {
@@ -88,7 +90,18 @@ export default defineEventHandler(async (event) => {
  
   const cached = await redis.get<VideoSummary[]>(cacheKey)
   if (cached) return cached
- 
+
+  const session = await getUserSession(event)
+  if (session?.user?.id) {
+    const userQuota = await checkAndConsumeUserYtQuota(session.user.id, 2)
+    if (!userQuota.allowed) {
+      throw createError({
+        statusCode: 429,
+        statusMessage: 'Daily YouTube quota reached (300/300 units used). Quota resets at midnight.'
+      })
+    }
+  }
+
   const config = useRuntimeConfig()
   const apiKey = config.youtubeApiKey
  
