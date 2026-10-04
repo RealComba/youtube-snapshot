@@ -1,3 +1,7 @@
+<script setup lang="ts">
+definePageMeta({ middleware: 'auth' })
+</script>
+
 <template>
   <div class="py-8 px-4 sm:px-6 max-w-6xl mx-auto space-y-6">
     <div>

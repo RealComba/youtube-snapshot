@@ -23,6 +23,30 @@ model User {
   ownChannel   Channel? @relation("OwnChannel", fields: [ownChannelId], references: [id])
 
   trackedChannels TrackedChannel[]
+  chatSessions    ChatSession[]
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String        @default("New Strategy Session")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String      // 'user' | 'assistant'
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+
+  @@index([sessionId, createdAt])
 }
 
 model TrackedChannel {

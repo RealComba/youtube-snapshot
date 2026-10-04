@@ -39,8 +39,8 @@ const navLinks = [
 </script>
 
 <template>
-    <aside class="w-64 border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 flex flex-col
-  justify-between shrink-0 min-h-screen">
+    <aside class="w-70 border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 flex flex-col
+  justify-between shrink-0 h-screen sticky top-0 backdrop-blur-sm">
         <div class="p-4 space-y-6">
             <div class="flex items-center justify-between px-2">
                 <NuxtLink to="/" class="flex items-center gap-2 font-bold text-lg">

@@ -49,6 +49,9 @@ Point out real patterns:
 IMPORTANT: Always conclude with a complete, fully formed sentence. Never stop mid-thought or mid-sentence.`
 
 export default defineEventHandler(async (event) => {
+  // 🔐 Auth guard: requires valid session or returns 401
+  const { user } = await requireUserSession(event)
+
   const { channel, videos } = await readBody<{
     channel: ChannelPayload
     videos: VideoSummary[]
@@ -61,8 +64,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
-  const rateLimit = await checkRateLimit(clientIdentifier)
+  const clientIdentifier = `user:${user.id}`
+  const rateLimit = await checkRateLimit(clientIdentifier, { windowSeconds: 60, maxRequests: 10 })
 
   if (!rateLimit.allowed) {
     throw createError({
@@ -77,6 +80,15 @@ export default defineEventHandler(async (event) => {
 
   if (cached) {
     return { channelId: channel.id, ...cached, cached: true }
+  }
+
+  // 🛡️ Per-user daily AI quota consumption on cache miss
+  const aiQuota = await checkAndConsumeAiQuota(user.id)
+  if (!aiQuota.allowed) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: `Daily AI limit reached (30/30 credits used). Quota resets in ${Math.ceil(aiQuota.resetInSeconds / 60)} minutes.`
+    })
   }
 
   const prompt = buildInsightPrompt(channel, videos)

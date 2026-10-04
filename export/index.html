@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+
+  <title>Reveal JS presentation</title>
+
+  <meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+  <meta name="author" content="Hakim El Hattab">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="libs/reveal.js/4.3.1/reset.css">
+  <link rel="stylesheet" href="libs/reveal.js/4.3.1/reveal.css">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  <!-- highlight Theme -->
+  
+  <link rel="stylesheet" href="libs/highlight.js/11.3.1/styles/monokai.min.css">
+  
+	
+		
+	<link rel="stylesheet" href="libs/reveal.js/4.3.1/plugin/chalkboard/style.css">
+	
+	
+	
+  <link rel="stylesheet" href="libs/reveal.js/4.3.1/plugin/customcontrols/style.css">
+  
+	
+
+
+
+  <!-- Revealjs Theme -->
+  
+  <link rel="stylesheet" href="libs/reveal.js/4.3.1/theme/black.css" id="theme">
+  
+  
+
+  <link rel="stylesheet" href="libs/styles/tasklist.css">
+	<link rel="stylesheet" href="libs/styles/iota.css">
+	<link rel="stylesheet" href="libs/styles/layout.css">
+
+
+  <!-- Revealjs Theme -->
+  
+
+   <!-- css list -->
+	
+
+   
+
+</head>
+
+<body>
+
+   
+
+  <div class="reveal">
+
+    <!-- Any section element inside of this container is displayed as a slide -->
+    <div class="slides">
+
+      
+
+
+    
+        <section >
+            
+            <h1>🎨 Piano di Riprogettazione Frontend &amp; AI Experience</h1>
+<blockquote>
+<p><strong>Progetto</strong>: YouTube Analyzer (Nuxt 4, Tailwind v4, Nuxt UI, Prisma 7, Gemini 2.5 Flash)<br>
+<strong>Data</strong>: Ottobre 2026<br>
+<strong>Obiettivo</strong>: Unificare l’identità visiva dell’applicazione, ripulire la landing page e il carosello, rendere intuitiva la ricerca canali, mettere in primo piano il personal studio dell’utente con KPI chiari e punteggi SEO per i video, dotare la modale video di 3 tab analitici (Title, SEO, Review) a costo di 1 solo credito AI, risolvere definitivamente il troncamento dei messaggi di Gemini ed introdurre l’indicatore dinamico di pensiero in tempo reale con timer e frasi contestuali.</p>
+</blockquote>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>1. Schema Colori Fisso (Slate &amp; Electric Blue)</h2>
+<h3>Problema attuale</h3>
+<p>L’applicazione presenta elementi in verde Emerald (colore di default di Nuxt UI), blu 600 custom nel carosello, blu scuro nei testi e rosso YouTube, creando disordine visivo e incoerenza.</p>
+<h3>Soluzione adottata</h3>
+<ul>
+<li><strong>Primary Brand</strong>: <code>blue</code> (Nuxt UI Blue 600/500) per pulsanti primari, stati attivi di navigazione, link, indicatori di progresso e icone evidenziate.</li>
+<li><strong>Neutral Background</strong>: <code>slate</code> per dark mode (<code>#09090b</code> / <code>#18181b</code>) e light mode (<code>#ffffff</code> / <code>#f8fafc</code>).</li>
+<li><strong>Accenti Semantici</strong>:
+<ul>
+<li><strong>Rosso YouTube</strong> (<code>#ef4444</code> / <code>#dc2626</code>): riservato esclusivamente ai loghi, badge YouTube e pulsanti di redirect a YouTube.</li>
+<li><strong>Semaforo Punteggi</strong> (Score 0-100 per video e titoli):
+<ul>
+<li>🟢 <strong>Verde</strong> (&gt;=75): Ottimo / Top Performer / Strong Hook</li>
+<li>🟡 <strong>Giallo</strong> (50-74): Medio / Migliorabile / Title Tweak</li>
+<li>🔴 <strong>Rosso</strong> (&lt;50): Critico / Da Ottimizzare / Retention Leak</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>File da aggiornare</strong>:
+<ul>
+<li><code>app/app.config.ts</code>: impostare <code>primary: 'blue'</code> e <code>neutral: 'slate'</code>.</li>
+<li><code>app/assets/css/main.css</code>: rimuovere i vecchi override <code>--color-green-*</code>.</li>
+</ul>
+</li>
+</ul>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>2. Landing Page &amp; Carosello Pulito</h2>
+<h3>Problema attuale</h3>
+<p>Il carosello sulla landing page presenta un menu di pulsanti in alto (<code>Carousel Tabs</code>) che sovraccarica la schermata e duplica i concetti già espressi nelle slide e nelle barre inferiori.</p>
+<h3>Soluzione adottata</h3>
+<ul>
+<li><strong>Rimuovere completamente il menu a pulsanti in alto</strong> dal carosello in <code>app/components/ProductLandingCarousel.vue</code>.</li>
+<li>Mantenere la transizione orizzontale fluida tra le slide e le barre di progresso animate sottostanti con pausa al passaggio del mouse.</li>
+<li>Mantenere il pulsante Hero principale “Connect YouTube” in bianco ad alto contrasto con testo scuro e logo YouTube rosso.</li>
+<li>Tipografia ariosa, bordi sottili e nessun elemento ridondante.</li>
+</ul>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>3. Pagina Ricerca Canale (<code>/</code>)</h2>
+<h3>Problema attuale</h3>
+<p>La pagina iniziale effettua un’auto-ricerca al caricamento caricando il proprio canale o <code>@mkbhd</code>.</p>
+<h3>Soluzione adottata</h3>
+<ul>
+<li><strong>Nessuna auto-ricerca su mount</strong>: la pagina di ricerca competitor parte <strong>completamente vuota</strong>.</li>
+<li><strong>Layout iniziale</strong>:
+<ol>
+<li>Header essenziale: <em>“Channel Analyzer”</em> con input di ricerca in evidenza.</li>
+<li>Subito sotto la search bar compare la griglia di <strong>Nicchie e Canali Suggeriti</strong> (<code>FeaturedNiches</code>), permettendo all’utente di esplorare creator e benchmark con un click.</li>
+<li>Quando l’utente inserisce e cerca un canale, la pagina mostra la panoramica dettagliata del competitor.</li>
+</ol>
+</li>
+</ul>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>4. My Channel Studio (<code>/my-channel</code>) Prioritario</h2>
+<h3>Ruolo della pagina</h3>
+<p><code>/my-channel</code> diventa il vero hub operativo per il creator:</p>
+<ul>
+<li>All’apertura carica e sincronizza automaticamente il proprio canale YouTube collegato (<code>user.ownChannel</code>).</li>
+<li>Se nessun canale è associato all’account Google, mostra una card di invito alla connessione.</li>
+</ul>
+<h3>StatsOverview Ridisegnato (<code>app/components/StatsOverview.vue</code>)</h3>
+<ul>
+<li><strong>Banner superiore</strong>: avatar con ring elegante, titolo canale, badge handle (<code>@handle</code>), data di sincronizzazione e pulsante esterno “View on YouTube”.</li>
+<li><strong>Grid con 4 KPI Card chiare</strong>:
+<ol>
+<li><strong>Subscribers</strong>: numero formattato con icona utenti.</li>
+<li><strong>Lifetime Views</strong>: visualizzazioni totali con icona grafici.</li>
+<li><strong>Video Catalog</strong>: totale video pubblicati con cadenza di caricamento.</li>
+<li><strong>Avg Views / Upload</strong>: benchmark medio per video con indicatore di performance.</li>
+</ol>
+</li>
+</ul>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>5. Lista Video con Filtri Prioritari e Semaforo SEO</h2>
+<h3>Nuove Funzionalità in <code>app/components/TopVideosList.vue</code></h3>
+<ul>
+<li><strong>Filtri Rapidi in testata</strong>:
+<ul>
+<li><code>All Videos</code></li>
+<li><code>🔥 Viral Outliers</code> (video che superano il benchmark medio del canale di almeno 1.5x)</li>
+<li><code>⚠️ Needs Optimization</code> (video con metriche sotto la media o titolo da potenziare)</li>
+<li><code>Shorts</code> / <code>Long-form</code></li>
+</ul>
+</li>
+<li><strong>Badge Semaforo su ogni Card</strong>:
+<ul>
+<li>🟢 <strong>80-100</strong>: <em>Top Performer / Strong Hook</em></li>
+<li>🟡 <strong>50-79</strong>: <em>Average Pacing / Title Tweak</em></li>
+<li>🔴 <strong>&lt;50</strong>: <em>Needs SEO Fix / Retention Leak</em></li>
+</ul>
+</li>
+<li>Metriche compatte: Views, Engagement Rate e moltiplicatore benchmark.</li>
+</ul>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>6. Modale Dettaglio Video (3 Tab + Fix Overflow)</h2>
+<h3>Problema attuale</h3>
+<p>La modale video non scorreva correttamente (overflow tagliato) e conteneva una sola diagnosi generica.</p>
+<h3>Soluzione adottata</h3>
+<ul>
+<li><strong>Fix Overflow</strong>: Aggiungere <code>max-h-[85vh] overflow-y-auto pr-1</code> al container della modale per garantire scorrimento fluido su desktop e mobile.</li>
+<li><strong>3 Tab Specializzati (Title, SEO, Review)</strong>:
+<ol>
+<li><strong>Tab 1: 🎯 Title Optimization</strong>:
+<ul>
+<li>3-4 titoli alternativi ad alto CTR basati su formule psicologiche (Curiosity gap, Contrarian, High Stakes).</li>
+<li>Punteggio per ogni titolo (es. <code>Score 92/100</code>).</li>
+<li>Pulsante “Copy Title” veloce.</li>
+</ul>
+</li>
+<li><strong>Tab 2: 🔍 SEO &amp; Description</strong>:
+<ul>
+<li>Punteggio SEO globale del video con barra a semaforo.</li>
+<li>Hashtag consigliati da inserire (cliccabili per copiare).</li>
+<li>Parole chiave suggerite per l’algoritmo YouTube.</li>
+<li>Checklist elementi mancanti (es. <em>“Description too short”</em>, <em>“Missing call to action”</em>).</li>
+</ul>
+</li>
+<li><strong>Tab 3: ⚡ Deep Review &amp; Hooks</strong>:
+<ul>
+<li>Diagnosi strutturata (ottimale sia per Shorts che per Long-form).</li>
+<li>Hook Score (Punteggio primi 5-15 secondi).</li>
+<li>Cosa ha funzionato (Strengths) e cosa ha causato abbandono del pubblico (Retention leaks).</li>
+<li>Azione pratica per il prossimo video.</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><strong>Ottimizzazione Quota Gemini</strong>:
+<ul>
+<li>L’endpoint <code>server/api/video-insight.post.ts</code> genera la struttura JSON per tutti e 3 i tab in una <strong>singola chiamata</strong>, consumando <strong>1 solo credito AI</strong> dai 30 giornalieri, con cache Redis di 7 giorni.</li>
+</ul>
+</li>
+</ul>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>7. AI Experience: Risoluzione Troncamento &amp; Live Thinking Status</h2>
+<h3>7.1 Risoluzione Troncamento Gemini (“si ferma a un fondo per…”)</h3>
+<ul>
+<li><strong>Causa tecnica</strong>: in Gemini 2.5 Flash, i token consumati dal processo di pensiero interno (<code>thinkingBudget: 512</code>) <strong>vengono sottratti dal totale di <code>maxOutputTokens</code></strong>. Avendo un limite impostato a 1500, non appena il modello pensava (~450 token) e scriveva una risposta dettagliata (~1000 token), esauriva il budget e si interrompeva a metà frase (<code>finishReason: MAX_TOKENS</code>).</li>
+<li><strong>Soluzione</strong>: Alzare <code>maxOutputTokens</code> a <strong>4096 / 8192</strong> in <code>server/api/chat/message.post.ts</code> e <code>server/api/video-insight.post.ts</code>. Il modello free tier lo supporta nativamente senza costi e senza interruzioni.</li>
+</ul>
+<h3>7.2 Dynamic Live Reasoning (“Thinking &amp; Extrapolating…”)</h3>
+<ul>
+<li>Durante la generazione della risposta nella chat (<code>app/pages/assistant.vue</code>), il caricamento statico viene sostituito da un widget dinamico con:
+<ul>
+<li><strong>Timer in tempo reale</strong>: <code>Thinking (3s)...</code> aggiornato ogni secondo.</li>
+<li><strong>Frasi contestuali YouTube a rotazione ogni 1.8s</strong>:
+<ol>
+<li><code>🧠 Analyzing channel velocity &amp; audience benchmarks... (2s)</code></li>
+<li><code>🔍 Evaluating curiosity gap &amp; title psychology... (4s)</code></li>
+<li><code>⚡ Extrapolating retention patterns &amp; hook friction... (6s)</code></li>
+<li><code>💡 Formulating high-converting viral blueprint... (8s)</code></li>
+<li><code>✍️ Finalizing actionable strategy recommendations... (10s)</code></li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h3>7.3 Pulizia UI Chat (<code>assistant.vue</code>)</h3>
+<ul>
+<li><strong>Rimozione testi ridondanti</strong>: eliminati <em>“Press Enter to send, Shift+Enter for new line”</em> e <em>“Protected by 30 Daily AI Credits”</em>.</li>
+<li><strong>Pulsante di invio centrato</strong>: barra di input riorganizzata con contenitore flexbox, textarea pulita e pulsante d’invio perfettamente allineato al centro.</li>
+<li><strong>Header ripulito</strong>: rimosso il badge <em>“Channel Context Active”</em>; il titolo della sessione occupa la larghezza con font marcato e sottotitolo discreto.</li>
+</ul>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>8. File Coinvolti e Piano di Esecuzione</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Azione</th>
+<th>Descrizione</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app/app.config.ts</code></td>
+<td>MODIFY</td>
+<td>Unificazione tema: <code>primary: 'blue'</code>, <code>neutral: 'slate'</code></td>
+</tr>
+<tr>
+<td><code>app/assets/css/main.css</code></td>
+<td>MODIFY</td>
+<td>Pulizia vecchi override <code>--color-green-*</code></td>
+</tr>
+<tr>
+<td><code>app/components/ProductLandingCarousel.vue</code></td>
+<td>MODIFY</td>
+<td>Rimozione menu in alto orribile, carosello pulito</td>
+</tr>
+<tr>
+<td><code>app/pages/index.vue</code></td>
+<td>MODIFY</td>
+<td>Rimozione auto-ricerca, pagina vuota con nicchie suggerite</td>
+</tr>
+<tr>
+<td><code>app/pages/my-channel.vue</code></td>
+<td>MODIFY</td>
+<td>Canale proprio in primo piano con auto-load</td>
+</tr>
+<tr>
+<td><code>app/components/StatsOverview.vue</code></td>
+<td>MODIFY</td>
+<td>Ridisegno KPI card in 4 metriche chiare con avatar &amp; handle</td>
+</tr>
+<tr>
+<td><code>app/components/TopVideosList.vue</code></td>
+<td>MODIFY</td>
+<td>Filtri prioritari, semaforo SEO, fix overflow modale e 3 tab</td>
+</tr>
+<tr>
+<td><code>server/api/video-insight.post.ts</code></td>
+<td>MODIFY</td>
+<td>Output strutturato per 3 tab (Title, SEO, Review) in 1 sola call</td>
+</tr>
+<tr>
+<td><code>server/api/chat/message.post.ts</code></td>
+<td>MODIFY</td>
+<td>Fix troncamento: <code>maxOutputTokens: 4096</code></td>
+</tr>
+<tr>
+<td><code>app/pages/assistant.vue</code></td>
+<td>MODIFY</td>
+<td>Timer thinking dinamico, frasi a rotazione, input centrato, header pulito</td>
+</tr>
+</tbody>
+</table>
+
+            </section>
+    
+
+
+
+    
+        <section >
+            
+            <h2>9. Verifica e Collaudo</h2>
+<ol>
+<li><code>pnpm typecheck</code>: validazione tipizzazione con 0 errori.</li>
+<li><code>pnpm build</code>: build di produzione per verificare bundle e assenza di regressioni.</li>
+<li>Test visivo browser su <code>localhost:3000</code>:
+<ul>
+<li>Landing page &amp; carosello</li>
+<li>Ricerca canale (parte vuota con nicchie)</li>
+<li>My Channel Studio</li>
+<li>Modale video (scorrimento + 3 tab)</li>
+<li>Chat AI (risposta completa senza troncamenti + timer e frasi dinamiche)</li>
+</ul>
+</li>
+</ol>
+
+            </section>
+    
+
+
+    </div>
+
+
+  </div>
+
+  <div class="line top"></div>
+  <div class="line bottom"></div>
+  <div class="line left"></div>
+  <div class="line right"></div>
+
+  <script src="libs/reveal.js/4.3.1/reveal.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/notes/notes.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/markdown/markdown.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/highlight/highlight.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/math/math.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/fullscreen/plugin.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/animate/plugin.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/animate/svg.min.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/anything/plugin.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/anything/Chart.min.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/anything/d3/d3.v3.min.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/anything/d3.patch.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/anything/d3/queue.v1.min.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/anything/d3/topojson.v1.min.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/anything/function-plot.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/customcontrols/plugin.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/embed-tweet/plugin.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/chart/chart.min.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/chart/plugin.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/verticator/verticator.js"></script>
+
+<script src="libs/reveal.js/4.3.1/plugin/zoom/zoom.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/search/search.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/menu/menu.js"></script>
+<script src="libs/reveal.js/4.3.1/plugin/chalkboard/plugin.js"></script>
+
+<!--	<script src="libs/reveal.js/4.3.1/plugin/audio-slideshow/plugin.js"></script>  -->
+<!--	<script src="libs/reveal.js/4.3.1/plugin/audio-slideshow/recorder.js"></script>-->
+<!--	<script src="libs/reveal.js/4.3.1/plugin/audio-slideshow/RecordRTC.js"></script>-->
+
+  
+
+<script>
+  const printPlugins = [
+      RevealNotes,
+      RevealHighlight,
+      RevealMath.MathJax3,
+      RevealAnimate,
+      RevealChalkboard, 
+			RevealEmbedTweet,
+			RevealChart,
+		];
+
+		const plugins =  [...printPlugins,
+		RevealZoom, 
+		RevealSearch, 
+				RevealMarkdown, 
+				RevealMenu, 
+				RevealFullscreen,
+				RevealAnything,
+				//RevealAudioSlideshow,
+				//RevealAudioRecorder,
+				RevealCustomControls, 
+				// poll
+				// question
+				// seminar
+				Verticator 
+				 ]
+
+
+		// Also available as an ES module, see:
+		// https://revealjs.com/initialization/
+		Reveal.initialize({
+			controls: true,
+      controlsTutorial: true,
+      controlsLayout: 'bottom-right',
+      controlsBackArrows: 'faded',
+      progress: true,
+      slideNumber: false,
+      //#showSlideNumber "all" "print" "speaker"
+      hash: true, //# hash: false,
+      //# respondToHashChanges: true,
+      //# history: false,
+      keyboard: true,
+      //#keyboardCondition: null,
+      overview: true,
+      center: true,
+      touch: true,
+      loop: false,
+      rtl: false,
+      //#navigationMode: 'default', linear grid
+      shuffle: false,
+      fragments: true,
+      fragmentInURL: false,
+      embedded: false,
+      help: true,
+      //#pause: true
+      showNotes: false,
+      autoPlayMedia: false, // TODO fix this to a nullable value
+      //#preloadIframes: null. true false
+      //#autoAnimate: true
+      //#autoAnimateMatcher: null,
+      //#autoAnimateEasing: 'ease',
+      //autoAnimateDuration: 1.0,
+      //#autoAnimateUnmatched: true
+      //#autoAnimateStyles: []
+      autoSlide: 0, // TODO fix this to a falseable value
+      autoSlideStoppable: true,
+      autoSlideMethod: '0',
+      defaultTiming: 120,
+      mouseWheel: false,
+      //#previewLinks: false
+      //#postMessage: true, // TODO : this can cause issues with the vscode api ???
+      //#postMessageEvents: false,
+      //#focusBodyOnPageVisibilityChange: true,
+      transition: 'slide',
+      transitionSpeed: 'default',
+      backgroundTransition: 'fade',
+      //#pdfMaxPagesPerSlide: Number.POSITIVE_INFINITY,
+      //#pdfSeparateFragments: true,
+      //#pdfPageHeightOffset: -1,
+      viewDistance: 3,
+      //#mobileViewDistance: 2,
+      display: 'block',
+      //#hideInactiveCursor: true,
+      //#hideCursorTime: 5000
+
+      // Parallax Background
+      parallaxBackgroundImage: '',
+      parallaxBackgroundSize: '',
+      parallaxBackgroundHorizontal: 0,
+      parallaxBackgroundVertical: 0,
+
+      //Presentation Size
+      width: 960,
+			height: 700,
+			margin: 0.04,
+      minScale: 0.2,
+      maxScale: 2,
+      disableLayout: false,
+
+      audio: {
+        prefix: 'audio/', // audio files are stored in the "audio" folder
+        suffix: '.ogg', // audio files have the ".ogg" ending
+        textToSpeechURL: null, // the URL to the text to speech converter
+        defaultNotes: false, // use slide notes as default for the text to speech converter
+        defaultText: false, // use slide text as default for the text to speech converter
+        advance: 0, // advance to next slide after given time in milliseconds after audio has played, use negative value to not advance
+        autoplay: false, // automatically start slideshow
+        defaultDuration: 5, // default duration in seconds if no audio is available
+        defaultAudios: true, // try to play audios with names such as audio/1.2.ogg
+        playerOpacity: 0.05, // opacity value of audio player if unfocused
+        playerStyle: 'position: fixed; bottom: 4px; left: 25%; width: 50%; height:75px; z-index: 33;', // style used for container of audio controls
+        startAtFragment: false, // when moving to a slide, start at the current fragment or at the start of the slide
+      },
+      
+      chalkboard: { // font-awesome.min.css must be available
+        //src: "chalkboard/chalkboard.json",
+        storage: "chalkboard-demo",
+      },
+      
+			customcontrols: {
+					controls: [
+      						{
+						  id: 'toggle-overview',
+						  title: 'Toggle overview (O)',
+						  icon: '<i class="fa fa-th"></i>',
+						  action: 'Reveal.toggleOverview();'
+						}
+						,
+      {
+        icon: '<i class="fa fa-pen-square"></i>',
+        title: 'Toggle chalkboard (B)',
+        action: 'RevealChalkboard.toggleChalkboard();'
+      },
+      {
+        icon: '<i class="fa fa-pen"></i>',
+        title: 'Toggle notes canvas (C)',
+        action: 'RevealChalkboard.toggleNotesCanvas();'
+      }
+      
+				]
+			},
+			chart: {
+					defaults: { 
+						color: 'lightgray', // color of labels
+						scale: { 
+							beginAtZero: true, 
+							ticks: { stepSize: 1 },
+							grid: { color: "lightgray" } , // color of grid lines
+						},
+					},
+					line: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ], "borderDash": [ [5,10], [0,0] ] }, 
+					bar: { backgroundColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]}, 
+					pie: { backgroundColor: [ ["rgba(0,0,0,.8)" , "rgba(220,20,20,.8)", "rgba(20,220,20,.8)", "rgba(220,220,20,.8)", "rgba(20,20,220,.8)"] ]},
+					radar: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]}, 
+			},
+			math: {
+				mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
+				config: 'TeX-AMS_HTML-full',
+				// pass other options into `MathJax.Hub.Config()`
+				TeX: { Macros: { RR: "{\\bf R}" } }
+				},
+				anything: [ 
+				{
+		className: "plot",
+		defaults: {width:500, height: 500, grid:true},
+		initialize: (function(container, options){ options.target = "#"+container.id; functionPlot(options) })
+	 },
+	 {
+		className: "chart",  
+		initialize: (function(container, options){ container.chart = new Chart(container.getContext("2d"), options);  })
+	 },
+	 {
+		className: "anything",
+		initialize: (function(container, options){ if (options && options.initialize) { options.initialize(container)} })
+	 },
+					],
+			// Learn about plugins: https://revealjs.com/plugins/
+			plugins: (window.location.search.match(/print-pdf/gi) ? printPlugins : plugins ) 
+		});
+			
+
+
+	    // Change chalkboard theme : 
+		function changeTheme(input) {
+			var config = {};
+			config.theme = input.value;
+			Reveal.getPlugin("RevealChalkboard").configure(config);
+			input.blur();
+		}
+
+		// // Handle the message inside the webview
+        // window.addEventListener('message', event => {
+
+        //     const message = event.data; // The JSON data our extension sent
+
+        //     switch (message.command) {
+        //         case 'refactor':
+        //             Reveal.toggleHelp();
+        //     }
+        // });
+
+		if (window.location.search.match(/print-pdf-now/gi)) {
+      		setTimeout(() => {
+				window.print();
+			  }, 2500);
+			
+    }
+</script>
+
+</body>
+
+</html>

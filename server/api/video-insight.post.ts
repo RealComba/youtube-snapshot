@@ -41,6 +41,9 @@ Format your response in 3 brief, distinct bullet points:
 Keep it concise, analytical, realistic (call out luck/trend if applicable), and under 150 words.`
 
 export default defineEventHandler(async (event) => {
+  // 🔐 Auth guard: requires valid session or returns 401
+  const { user } = await requireUserSession(event)
+
   const payload = await readBody<VideoInsightPayload>(event)
 
   if (!payload?.videoId || !payload?.title) {
@@ -50,8 +53,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
-  const rateLimit = await checkRateLimit(clientIdentifier)
+  const clientIdentifier = `user:${user.id}`
+  const rateLimit = await checkRateLimit(clientIdentifier, { windowSeconds: 60, maxRequests: 10 })
 
   if (!rateLimit.allowed) {
     throw createError({
@@ -66,6 +69,15 @@ export default defineEventHandler(async (event) => {
 
   if (cached) {
     return { ...cached, cached: true }
+  }
+
+  // 🛡️ Per-user daily AI quota consumption on cache miss
+  const aiQuota = await checkAndConsumeAiQuota(user.id)
+  if (!aiQuota.allowed) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: `Daily AI limit reached (30/30 credits used). Quota resets in ${Math.ceil(aiQuota.resetInSeconds / 60)} minutes.`
+    })
   }
 
   const channelAvg = payload.avgViews || 0
