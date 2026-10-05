@@ -22,10 +22,13 @@ interface VideosListResponse {
   items?: Array<{
     id: string
     snippet: {
-      title: string
+      title: string; description: string
       publishedAt: string
       thumbnails: {
         medium: { url: string }
+        high?: { url: string }
+        standard?: { url: string }
+        maxres?: { url: string }
       }
     }
     statistics: {
@@ -41,7 +44,7 @@ interface VideosListResponse {
  
 interface VideoSummary {
   id: string
-  title: string
+  title: string; description: string
   publishedAt: string
   thumbnail: string
   viewCount: number
@@ -85,7 +88,7 @@ export default defineEventHandler(async (event) => {
     })
   }
  
-  const cacheKey = `yt:videos:${channelId}:${limit}`
+  const cacheKey = `yt:videos:v4:${channelId}:${limit}`
   const redis = useRedis()
  
   const cached = await redis.get<VideoSummary[]>(cacheKey)
@@ -152,8 +155,9 @@ export default defineEventHandler(async (event) => {
       return {
         id: video.id,
         title: video.snippet.title,
+        description: video.snippet.description,
         publishedAt: video.snippet.publishedAt,
-        thumbnail: video.snippet.thumbnails.medium.url,
+        thumbnail: video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.standard?.url || video.snippet.thumbnails.high?.url || video.snippet.thumbnails.medium.url,
         viewCount: Number(video.statistics.viewCount ?? 0),
         likeCount: Number(video.statistics.likeCount ?? 0),
         commentCount: Number(video.statistics.commentCount ?? 0),

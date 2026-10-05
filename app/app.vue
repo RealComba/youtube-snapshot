@@ -50,26 +50,11 @@ useSeoMeta({
       </div>
     </div>
 
-    <!-- PUBLIC / GUEST: Clean Landing Shell -->
+    <!-- PUBLIC / GUEST: Clean Landing Shell (No Navbar/Footer) -->
     <div v-else class="min-h-screen flex flex-col">
-      <UHeader>
-        <template #left>
-        </template>
-
-        <template #right>
-        </template>
-      </UHeader>
-
       <main class="flex-1">
         <NuxtPage />
       </main>
-
-      <UFooter>
-        <template #left>
-          <p class="text-sm text-muted">
-          </p>
-        </template>
-      </UFooter>
     </div>
   </UApp>
 </template>

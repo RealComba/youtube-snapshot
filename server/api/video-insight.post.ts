@@ -1,6 +1,7 @@
 interface VideoInsightPayload {
   videoId: string
   title: string
+  description?: string
   publishedAt: string
   viewCount: number
   likeCount: number
@@ -39,6 +40,7 @@ export interface VideoInsightTabs {
   seoAlgorithm: {
     analysis: string
     seoScore: number
+    descriptionSuggestion: string
     recommendedHashtags: string[]
     suggestedKeywords: string[]
     checklist: SeoChecklistItem[]
@@ -83,6 +85,7 @@ Return a valid JSON object strictly matching this schema:
   "seoAlgorithm": {
     "analysis": "Why this format, tags, duration and topic resonated with search and browse algorithms.",
     "seoScore": 85,
+    "descriptionSuggestion": "An SEO-optimized description with emojis 🔥. Make sure to subscribe!",
     "recommendedHashtags": ["#shorts", "#tech", "#ai", "#creator", "#growth"],
     "suggestedKeywords": ["youtube strategy", "viral retention", "audience growth"],
     "checklist": [
@@ -132,7 +135,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const cacheKey = `yt:video-insight:${payload.videoId}`
+  const cacheKey = `yt:video-insight:v3:${payload.videoId}`
   const redis = useRedis()
   const cached = await redis.get<VideoInsightResult>(cacheKey)
 
@@ -140,7 +143,7 @@ export default defineEventHandler(async (event) => {
     if (!cached.tabs) {
       cached.tabs = {
         titleHook: { analysis: cached.diagnosis || '', alternativeTitles: [], score: 75 },
-        seoAlgorithm: { analysis: 'Algorithmic assessment completed.', seoScore: 75, recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Browse Features' },
+        seoAlgorithm: { analysis: 'Algorithmic assessment completed.', seoScore: 75, descriptionSuggestion: "Check out this amazing video!", recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Browse Features' },
         contentReview: { analysis: cached.diagnosis || '', hookScore: 75, strengths: [], retentionLeaks: [], nextAction: 'Deepen winning topics.' },
         overallSummary: cached.diagnosis || ''
       }
@@ -167,6 +170,7 @@ export default defineEventHandler(async (event) => {
     `Channel: ${payload.channelTitle || 'Unknown Creator'}`,
     `Channel Average Views per Upload: ${channelAvg.toLocaleString()}`,
     `Video Title: "${payload.title}"`,
+    `Video Description: "${(payload.description || "").slice(0, 500)}..."`,
     `Format: ${payload.isShort ? 'Shorts' : 'Long-form'} (${payload.durationSeconds}s)`,
     `Published Date: ${payload.publishedAt}`,
     `Views: ${payload.viewCount.toLocaleString()} (${multiplier}x channel benchmark)`,
@@ -197,7 +201,7 @@ export default defineEventHandler(async (event) => {
           ],
           generationConfig: {
             responseMimeType: 'application/json',
-            maxOutputTokens: 2048
+            maxOutputTokens: 8192
           }
         }
       }
@@ -212,9 +216,16 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    let jsonText = text.trim()
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '')
+    }
+    
     let parsedTabs: VideoInsightTabs
     try {
-      parsedTabs = JSON.parse(text)
+      parsedTabs = JSON.parse(jsonText)
       // Normalize alternativeTitles if strings from older cache
       if (parsedTabs?.titleHook?.alternativeTitles?.length) {
         parsedTabs.titleHook.alternativeTitles = parsedTabs.titleHook.alternativeTitles.map((item: any, idx: number) => {
@@ -250,7 +261,7 @@ export default defineEventHandler(async (event) => {
     } catch {
       parsedTabs = {
         titleHook: { analysis: text, alternativeTitles: [], score: 75 },
-        seoAlgorithm: { analysis: 'Algorithmic breakdown generated.', seoScore: 75, recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Algorithmic' },
+        seoAlgorithm: { analysis: 'Algorithmic breakdown generated.', seoScore: 75, descriptionSuggestion: "Check out this amazing video!", recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Algorithmic' },
         contentReview: { analysis: text, hookScore: 75, strengths: [], retentionLeaks: [], nextAction: 'Iterate on top performing concept.' },
         overallSummary: text.slice(0, 200)
       }

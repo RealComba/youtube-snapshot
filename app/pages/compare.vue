@@ -1,7 +1,45 @@
 <script setup lang="ts">
+import { button } from '#build/ui'
+
 definePageMeta({ middleware: 'auth' })
 
 const { formatNumber } = useFormatters()
+const { user } = useUserSession()
+const channelStore = useChannelStore()
+
+function useMyChannel() {
+  const ownChannel = user.value?.ownChannel
+  if (!ownChannel) return 
+
+  if (!handleA.value.trim()) {
+    handleA.value = ownChannel.handle || ownChannel.id
+  } else if (!handleB.value.trim()) {
+    handleB.value = ownChannel.handle || ownChannel.id
+  } else {
+    handleB.value = ownChannel.handle || ownChannel.id
+  }
+
+  if (handleA.value && handleB.value) {
+    compare()
+  }
+}
+
+function clearAll() {
+  handleA.value = ''
+  handleB.value = ''
+  channelA.value = null
+  channelB.value = null
+  insightA.value = null
+  insightB.value = null
+  error.value = null
+  lastCompared.value = null
+}
+
+const ownChannelHandle = computed(() => {
+  const ownChannel = user.value?.ownChannel
+  return ownChannel?.handle || ownChannel?.id || ''
+})
+
 
 interface ChannelData {
   id: string
@@ -26,7 +64,7 @@ const insightLoadingA = ref(false)
 const insightLoadingB = ref(false)
 
 async function compare() {
-  if (!handleA.value.trim() || !handleB.value.trim()) return
+  if (!canCompare.value) return
   loading.value = true
   error.value = null
   channelA.value = null
@@ -41,6 +79,7 @@ async function compare() {
     ])
     channelA.value = a
     channelB.value = b
+    lastCompared.value = { a: cleanA.value, b: cleanB.value }
   } catch (err: any) {
     error.value = err?.data?.statusMessage || 'Error while comparing channels'
   } finally {
@@ -100,45 +139,236 @@ function getLeadBadge(higher: number, lower: number): string {
   }
   return 'Ahead'
 }
+
+const comparisonPresets = [
+  { label: 'Airrack vs Jakidale', a: '@airrack', b: '@jakidale', badge: 'Creator Showdown' },
+  { label: 'MrBeast vs T-Series', a: '@MrBeast', b: '@tseries', badge: 'Global Scale' },
+  { label: 'MKBHD vs Dave2D', a: '@mkbhd', b: '@Dave2D', badge: 'Tech Reviews' },
+  { label: 'Veritasium vs Mark Rober', a: '@veritasium', b: '@MarkRober', badge: 'STEM' },
+  { label: 'Fireship vs ThePrimeTime', a: '@Fireship', b: '@ThePrimeTimeagen', badge: 'Devs' }
+]
+
+const cleanA = computed(() => handleA.value.trim().toLowerCase().replace(/^@/, ''))
+const cleanB = computed(() => handleB.value.trim().toLowerCase().replace(/^@/, ''))
+
+const isSameChannel = computed(() => {
+  return cleanA.value !== '' && cleanA.value === cleanB.value
+})
+
+const isMyChannelSelected = computed(() => {
+  if (!ownChannelHandle.value) return false
+  const own = ownChannelHandle.value.toLowerCase().replace(/^@/, '')
+  return cleanA.value === own || cleanB.value === own
+})
+
+const lastCompared = ref<{ a: string; b: string } | null>(null)
+
+const canCompare = computed(() => {
+  if (!cleanA.value || !cleanB.value) return false
+  if (isSameChannel.value) return false
+  if (loading.value) return false
+  if (lastCompared.value && lastCompared.value.a === cleanA.value && lastCompared.value.b === cleanB.value) {
+    return false
+  }
+  return true
+})
+
+function selectPreset(preset: typeof comparisonPresets[number]) {
+  handleA.value = preset.a
+  handleB.value = preset.b
+  compare()
+}
+
+function handleEnterCompare() {
+  if (canCompare.value) {
+    compare()
+  }
+}
 </script>
 
 <template>
   <UContainer class="py-10">
-    <div class="text-center mb-8">
+    <div class="text-center mb-6">
       <h1 class="text-3xl font-bold">Compare Channels</h1>
       <p class="text-muted mt-2">Put two YouTube channels head-to-head</p>
     </div>
 
-    <!-- Input Form -->
-    <form class="max-w-2xl mx-auto mb-10" @submit.prevent="compare">
-      <div class="flex items-center gap-3">
-        <UInput v-model="handleA" placeholder="@first_channel" icon="i-lucide-search" size="xl" class="flex-1"
-          :disabled="loading" />
-        <span class="text-muted font-bold text-sm">VS</span>
-        <UInput v-model="handleB" placeholder="@second_channel" icon="i-lucide-search" size="xl" class="flex-1"
-          :disabled="loading" />
-        <UButton type="submit" label="Compare" icon="i-lucide-git-compare-arrows" size="xl" :loading="loading" />
+    <!-- Popular Rivalries (Sopra gli input, rimosso solo quando ricerco / caricato) -->
+    <div v-if="!loading && (!channelA || !channelB)" class="max-w-2xl mx-auto mb-6 flex flex-wrap items-center justify-center gap-2">
+      <span class="text-xs text-muted flex items-center gap-1 font-medium mr-1">
+        <UIcon name="i-lucide-zap" class="size-3.5 text-primary" />
+        Popular Rivalries:
+      </span>
+      <button v-for="preset in comparisonPresets" :key="preset.label" type="button" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs border border-neutral-200
+            dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-primary/50 hover:bg-primary/5 transition-all
+            cursor-pointer font-medium" @click="selectPreset(preset)">
+        <span>{{ preset.label }}</span>
+        <span class="text-[10px] text-muted font-normal">({{ preset.badge }})</span>
+      </button>
+    </div>
+
+    <!-- Area Controllo (max-w-3xl standard) -->
+    <!-- STATO 1: Pre-ricerca canale (!channelA || !channelB) -->
+    <div v-if="!channelA || !channelB" class="max-w-3xl mx-auto mb-8 space-y-4 flex items-center justify-center flex-col">
+      <!-- Symmetrical Row: Slot A | VS (Centro esatto) | Slot B -->
+      <div class="flex items-center gap-3 w-full">
+        <!-- Slot A (h-10) -->
+        <div class="flex-1 h-10 px-3 rounded-lg border flex items-center transition-all"
+          :class="channelA || handleA === ownChannelHandle ? 'border-blue-500 bg-blue-500/5 dark:bg-blue-500/10' : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 focus-within:border-blue-500'">
+          <div v-if="channelA || handleA === ownChannelHandle" class="flex items-center justify-between gap-2 w-full">
+            <div class="flex items-center gap-2 min-w-0">
+              <UAvatar :src="channelA?.thumbnail || (handleA === ownChannelHandle ? user?.ownChannel?.thumbnail : undefined)"
+                :alt="handleA" size="xs" class="ring-1 ring-blue-500/30 shrink-0" />
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-blue-600 dark:text-blue-400 truncate leading-tight">{{ channelA?.title || user?.ownChannel?.title || handleA }}</p>
+                <p class="text-[10px] text-muted truncate leading-tight">{{ handleA }}</p>
+              </div>
+            </div>
+            <UButton icon="i-lucide-x" size="xs" color="neutral" variant="ghost" class="shrink-0" @click="handleA = ''; channelA = null; lastCompared = null" />
+          </div>
+          <div v-else class="flex items-center gap-2 w-full">
+            <UIcon name="i-lucide-search" class="size-4 text-muted shrink-0" />
+            <input v-model="handleA" placeholder="@first_channel" class="w-full bg-transparent text-sm focus:outline-none placeholder:text-muted" @keydown.enter.prevent="handleEnterCompare" />
+          </div>
+        </div>
+
+        <!-- VS (size-7, discreto al centro esatto) -->
+        <div class="flex-shrink-0 flex items-center justify-center size-7 rounded-full bg-neutral-100 dark:bg-neutral-800 text-muted font-bold text-[11px] border border-neutral-200 dark:border-neutral-700">
+          VS
+        </div>
+
+        <!-- Slot B (h-10) -->
+        <div class="flex-1 h-10 px-3 rounded-lg border flex items-center transition-all"
+          :class="channelB || handleB === ownChannelHandle ? 'border-rose-500 bg-rose-500/5 dark:bg-rose-500/10' : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 focus-within:border-rose-500'">
+          <div v-if="channelB || handleB === ownChannelHandle" class="flex items-center justify-between gap-2 w-full">
+            <div class="flex items-center gap-2 min-w-0">
+              <UAvatar :src="channelB?.thumbnail || (handleB === ownChannelHandle ? user?.ownChannel?.thumbnail : undefined)"
+                :alt="handleB" size="xs" class="ring-1 ring-rose-500/30 shrink-0" />
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-rose-500 truncate leading-tight">{{ channelB?.title || user?.ownChannel?.title || handleB }}</p>
+                <p class="text-[10px] text-muted truncate leading-tight">{{ handleB }}</p>
+              </div>
+            </div>
+            <UButton icon="i-lucide-x" size="xs" color="neutral" variant="ghost" class="shrink-0" @click="handleB = ''; channelB = null; lastCompared = null" />
+          </div>
+          <div v-else class="flex items-center gap-2 w-full">
+            <UIcon name="i-lucide-search" class="size-4 text-muted shrink-0" />
+            <input v-model="handleB" placeholder="@second_channel" class="w-full bg-transparent text-sm focus:outline-none placeholder:text-muted" @keydown.enter.prevent="handleEnterCompare" />
+          </div>
+        </div>
       </div>
-    </form>
 
-    <UAlert v-if="error" color="error" icon="i-lucide-alert-circle" :title="error" class="mb-6" />
+      <!-- BOTTONI IN FILA AL CENTRO (Pre-ricerca) -->
+      <div class="flex items-center justify-center gap-3 pt-1">
 
-    <div v-if="loading" class="grid grid-cols-2 gap-6">
+        <UButton
+          label="Compare Channels"
+          icon="i-lucide-git-compare-arrows"
+          size="sm"
+          :color="canCompare ? 'primary' : 'neutral'"
+          :variant="canCompare ? 'solid' : 'subtle'"
+          :loading="loading"
+          :disabled="!canCompare"
+          class="h-9 px-5 font-semibold shadow-xs transition-all w-[170px]"
+          :class="!canCompare ? 'opacity-60 cursor-not-allowed' : ''"
+          @click="compare"
+        />
+
+        <UButton
+          v-if="user?.ownChannel"
+          :label="isMyChannelSelected ? 'Channel Added' : 'Use My Channel'"
+          icon="i-lucide-user"
+          variant="subtle"
+          size="sm"
+          :color="isMyChannelSelected ? 'neutral' : 'primary'"
+          :disabled="isMyChannelSelected"
+          class="h-9 px-7 font-medium transition-all w-[170px]"
+          :class="isMyChannelSelected ? 'opacity-60 cursor-not-allowed' : ''"
+          @click="useMyChannel"
+        />
+      </div>
+
+      <UButton v-if="handleA || handleB" label="Clear" variant="ghost" color="neutral" size="sm"
+        class="h-9 px-4 font-medium" @click="clearAll" />
+
+      <!-- Avviso canali duplicati (Anti-spreco Redis) -->
+
+    </div>
+
+    <!-- STATO 2: Post-ricerca canale (channelA && channelB trovati) -> Barra compatta in alto -->
+    <div v-else class="max-w-3xl mx-auto mb-8">
+      <div class="flex items-center gap-2.5 w-full">
+        <!-- Slot A (h-10) -->
+        <div class="flex-1 h-10 px-3 rounded-lg border flex items-center transition-all border-blue-500 bg-blue-500/5 dark:bg-blue-500/10">
+          <div class="flex items-center justify-between gap-2 w-full">
+            <div class="flex items-center gap-2 min-w-0">
+              <UAvatar :src="channelA?.thumbnail" :alt="handleA" size="xs" class="ring-1 ring-blue-500/30 shrink-0" />
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-blue-600 dark:text-blue-400 truncate leading-tight">{{ channelA?.title }}</p>
+                <p class="text-[10px] text-muted truncate leading-tight">{{ handleA }}</p>
+              </div>
+            </div>
+            <UButton icon="i-lucide-x" size="xs" color="neutral" variant="ghost" class="shrink-0" @click="handleA = ''; channelA = null; lastCompared = null" />
+          </div>
+        </div>
+
+        <!-- VS -->
+        <div class="flex-shrink-0 flex items-center justify-center size-7 rounded-full bg-neutral-100 dark:bg-neutral-800 text-muted font-bold text-[11px] border border-neutral-200 dark:border-neutral-700">
+          VS
+        </div>
+
+        <!-- Slot B (h-10) -->
+        <div class="flex-1 h-10 px-3 rounded-lg border flex items-center transition-all border-rose-500 bg-rose-500/5 dark:bg-rose-500/10">
+          <div class="flex items-center justify-between gap-2 w-full">
+            <div class="flex items-center gap-2 min-w-0">
+              <UAvatar :src="channelB?.thumbnail" :alt="handleB" size="xs" class="ring-1 ring-rose-500/30 shrink-0" />
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-rose-500 truncate leading-tight">{{ channelB?.title }}</p>
+                <p class="text-[10px] text-muted truncate leading-tight">{{ handleB }}</p>
+              </div>
+            </div>
+            <UButton icon="i-lucide-x" size="xs" color="neutral" variant="ghost" class="shrink-0" @click="handleB = ''; channelB = null; lastCompared = null" />
+          </div>
+        </div>
+
+        <!-- Azioni Compatte a fine riga (Clear + Compare Inattivo) -->
+        <div class="flex items-center gap-2 shrink-0">
+          <UButton label="Clear" variant="ghost" color="neutral" size="md" @click="clearAll" />
+          <UButton
+            label="Compare"
+            icon="i-lucide-git-compare-arrows"
+            size="md"
+            :color="canCompare ? 'primary' : 'neutral'"
+            :variant="canCompare ? 'solid' : 'subtle'"
+            :loading="loading"
+            :disabled="!canCompare"
+            class="transition-all"
+            :class="!canCompare ? 'opacity-60 cursor-not-allowed' : ''"
+            @click="compare"
+          />
+        </div>
+      </div>
+    </div>
+
+    <UAlert v-if="error" color="error" icon="i-lucide-alert-circle" :title="error" class="mb-6 max-w-3xl mx-auto" />
+
+    <div v-if="loading" class="grid grid-cols-2 gap-6 mb-6">
       <USkeleton class="h-48 rounded-lg" />
       <USkeleton class="h-48 rounded-lg" />
     </div>
 
     <!-- Results -->
     <div v-if="!loading && channelA && channelB" class="space-y-6">
+
       <!-- Channel cards side by side -->
       <div class="grid grid-cols-2 gap-6">
-        <!-- Channel A (Emerald Theme) -->
-        <UCard class="border-t-4 border-t-emerald-500">
+        <!-- Channel A (Blue Theme) -->
+        <UCard class="border-t-4 border-t-blue-500">
           <div class="flex items-center gap-3 mb-3">
-            <UAvatar :src="channelA.thumbnail" :alt="channelA.title" size="lg" class="ring-2 ring-emerald-500/30" />
+            <UAvatar :src="channelA.thumbnail" :alt="channelA.title" size="lg" class="ring-2 ring-blue-500/30" />
             <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <span class="size-2 rounded-full bg-emerald-500 inline-block"></span>
+                <span class="size-2 rounded-full bg-blue-500 inline-block"></span>
                 <h3 class="text-lg font-bold truncate">{{ channelA.title }}</h3>
               </div>
               <p class="text-sm text-muted line-clamp-2 mt-0.5">{{ channelA.description }}</p>
@@ -147,19 +377,19 @@ function getLeadBadge(higher: number, lower: number): string {
 
           <div class="grid grid-cols-3 gap-3 text-center mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <div>
-              <p class="text-xl font-bold" :class="winner('subscriberCount') === 'a' ? 'text-emerald-500 font-extrabold' : 'text-neutral-500'">
+              <p class="text-xl font-bold" :class="winner('subscriberCount') === 'a' ? 'text-blue-500 font-extrabold' : 'text-neutral-500'">
                 {{ formatNumber(channelA.subscriberCount) }}
               </p>
               <p class="text-xs text-muted">Subscribers</p>
             </div>
             <div>
-              <p class="text-xl font-bold" :class="winner('viewCount') === 'a' ? 'text-emerald-500 font-extrabold' : 'text-neutral-500'">
+              <p class="text-xl font-bold" :class="winner('viewCount') === 'a' ? 'text-blue-500 font-extrabold' : 'text-neutral-500'">
                 {{ formatNumber(channelA.viewCount) }}
               </p>
               <p class="text-xs text-muted">Total Views</p>
             </div>
             <div>
-              <p class="text-xl font-bold" :class="winner('videoCount') === 'a' ? 'text-emerald-500 font-extrabold' : 'text-neutral-500'">
+              <p class="text-xl font-bold" :class="winner('videoCount') === 'a' ? 'text-blue-500 font-extrabold' : 'text-neutral-500'">
                 {{ formatNumber(channelA.videoCount) }}
               </p>
               <p class="text-xs text-muted">Videos</p>
@@ -176,12 +406,12 @@ function getLeadBadge(higher: number, lower: number): string {
         </UCard>
 
         <!-- Channel B (Indigo Theme) -->
-        <UCard class="border-t-4 border-t-indigo-500">
+        <UCard class="border-t-4 border-t-rose-500">
           <div class="flex items-center gap-3 mb-3">
-            <UAvatar :src="channelB.thumbnail" :alt="channelB.title" size="lg" class="ring-2 ring-indigo-500/30" />
+            <UAvatar :src="channelB.thumbnail" :alt="channelB.title" size="lg" class="ring-2 ring-rose-500/30" />
             <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <span class="size-2 rounded-full bg-indigo-500 inline-block"></span>
+                <span class="size-2 rounded-full bg-rose-500 inline-block"></span>
                 <h3 class="text-lg font-bold truncate">{{ channelB.title }}</h3>
               </div>
               <p class="text-sm text-muted line-clamp-2 mt-0.5">{{ channelB.description }}</p>
@@ -190,19 +420,19 @@ function getLeadBadge(higher: number, lower: number): string {
 
           <div class="grid grid-cols-3 gap-3 text-center mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
             <div>
-              <p class="text-xl font-bold" :class="winner('subscriberCount') === 'b' ? 'text-indigo-500 font-extrabold' : 'text-neutral-500'">
+              <p class="text-xl font-bold" :class="winner('subscriberCount') === 'b' ? 'text-rose-500 font-extrabold' : 'text-neutral-500'">
                 {{ formatNumber(channelB.subscriberCount) }}
               </p>
               <p class="text-xs text-muted">Subscribers</p>
             </div>
             <div>
-              <p class="text-xl font-bold" :class="winner('viewCount') === 'b' ? 'text-indigo-500 font-extrabold' : 'text-neutral-500'">
+              <p class="text-xl font-bold" :class="winner('viewCount') === 'b' ? 'text-rose-500 font-extrabold' : 'text-neutral-500'">
                 {{ formatNumber(channelB.viewCount) }}
               </p>
               <p class="text-xs text-muted">Total Views</p>
             </div>
             <div>
-              <p class="text-xl font-bold" :class="winner('videoCount') === 'b' ? 'text-indigo-500 font-extrabold' : 'text-neutral-500'">
+              <p class="text-xl font-bold" :class="winner('videoCount') === 'b' ? 'text-rose-500 font-extrabold' : 'text-neutral-500'">
                 {{ formatNumber(channelB.videoCount) }}
               </p>
               <p class="text-xs text-muted">Videos</p>
@@ -224,8 +454,8 @@ function getLeadBadge(higher: number, lower: number): string {
         <!-- Header with colored badges -->
         <div class="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4 mb-6">
           <div class="flex items-center gap-2.5">
-            <span class="size-3 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20"></span>
-            <span class="font-bold text-base truncate max-w-[220px] text-emerald-600 dark:text-emerald-400">
+            <span class="size-3 rounded-full bg-blue-500 ring-4 ring-blue-500/20"></span>
+            <span class="font-bold text-base truncate max-w-[220px] text-blue-600 dark:text-blue-400">
               {{ channelA.title }}
             </span>
           </div>
@@ -236,10 +466,10 @@ function getLeadBadge(higher: number, lower: number): string {
           </div>
 
           <div class="flex items-center gap-2.5">
-            <span class="font-bold text-base truncate max-w-[220px] text-right text-indigo-600 dark:text-indigo-400">
+            <span class="font-bold text-base truncate max-w-[220px] text-right text-rose-600 dark:text-rose-400">
               {{ channelB.title }}
             </span>
-            <span class="size-3 rounded-full bg-indigo-500 ring-4 ring-indigo-500/20"></span>
+            <span class="size-3 rounded-full bg-rose-500 ring-4 ring-rose-500/20"></span>
           </div>
         </div>
 
@@ -257,17 +487,17 @@ function getLeadBadge(higher: number, lower: number): string {
           >
             <!-- Label in center, numbers on sides -->
             <div class="flex items-center justify-between">
-              <!-- Channel A (Emerald) -->
+              <!-- Channel A (Blue) -->
               <div class="flex items-center gap-2">
                 <span
                   class="text-xl font-bold tracking-tight"
-                  :class="winner(metric.key) === 'a' ? 'text-emerald-500 font-extrabold' : 'text-neutral-500 dark:text-neutral-400'"
+                  :class="winner(metric.key) === 'a' ? 'text-blue-500 font-extrabold' : 'text-neutral-500 dark:text-neutral-400'"
                 >
                   {{ formatNumber(metric.vA) }}
                 </span>
                 <span
                   v-if="winner(metric.key) === 'a'"
-                  class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
                 >
                   {{ getLeadBadge(metric.vA, metric.vB) }}
                 </span>
@@ -282,30 +512,30 @@ function getLeadBadge(higher: number, lower: number): string {
               <div class="flex items-center gap-2">
                 <span
                   v-if="winner(metric.key) === 'b'"
-                  class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                  class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                 >
                   {{ getLeadBadge(metric.vB, metric.vA) }}
                 </span>
                 <span
                   class="text-xl font-bold tracking-tight"
-                  :class="winner(metric.key) === 'b' ? 'text-indigo-500 font-extrabold' : 'text-neutral-500 dark:text-neutral-400'"
+                  :class="winner(metric.key) === 'b' ? 'text-rose-500 font-extrabold' : 'text-neutral-500 dark:text-neutral-400'"
                 >
                   {{ formatNumber(metric.vB) }}
                 </span>
               </div>
             </div>
 
-            <!-- Segmented Dual-Color Bar (Emerald vs Indigo) -->
+            <!-- Segmented Dual-Color Bar (Blue vs Indigo) -->
             <div class="h-3.5 rounded-full overflow-hidden flex p-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 gap-1">
-              <!-- Left side (Channel A - Emerald) -->
+              <!-- Left side (Channel A - Blue) -->
               <div
-                class="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                class="h-full rounded-full bg-blue-500 transition-all duration-500"
                 :style="{ width: `${barPercent(metric.vA, metric.vB)}%` }"
               />
 
               <!-- Right side (Channel B - Indigo) -->
               <div
-                class="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                class="h-full rounded-full bg-rose-500 transition-all duration-500"
                 :style="{ width: `${100 - barPercent(metric.vA, metric.vB)}%` }"
               />
             </div>

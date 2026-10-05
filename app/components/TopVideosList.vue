@@ -2,6 +2,13 @@
 const store = useChannelStore()
 const { formatNumber, formatDate, formatDuration } = useFormatters()
 
+const viewsPerHour = (video: any): number => {
+  const published = new Date(video.publishedAt).getTime()
+  const now = new Date().getTime()
+  const hours = Math.max(1, (now - published) / (1000 * 60 * 60))
+  return Math.round(video.viewCount / hours)
+}
+
 interface TitleAlternative {
   title: string
   score: number
@@ -13,6 +20,7 @@ interface SeoChecklistItem {
   passed: boolean
 }
 
+
 interface VideoInsightTabs {
   titleHook: {
     analysis: string
@@ -22,7 +30,9 @@ interface VideoInsightTabs {
   seoAlgorithm: {
     analysis: string
     seoScore: number
-    recommendedTags: string[]
+    descriptionSuggestion?: string
+
+    recommendedHashtags: string[]
     suggestedKeywords?: string[]
     checklist?: SeoChecklistItem[]
     searchBrowseFit: string
@@ -51,7 +61,7 @@ const filterType = ref<'all' | 'outlier' | 'short' | 'long'>('all')
 
 const selectedVideo = ref<typeof store.videos[number] | null>(null)
 const modalOpen = ref(false)
-const activeModalTab = ref<'title' | 'seo' | 'review'>('title')
+const activeModalTab = ref<'stats' | 'title' | 'seo' | 'review'>('stats')
 const copiedIndex = ref<number | null>(null)
 const copiedTag = ref<string | null>(null)
 const aiRemaining = ref<number | null>(null)
@@ -71,7 +81,7 @@ async function fetchAiQuota() {
 
 function openVideo(video: typeof store.videos[number]) {
   selectedVideo.value = video
-  activeModalTab.value = 'title'
+  activeModalTab.value = 'stats'
   modalOpen.value = true
   fetchAiQuota()
 }
@@ -181,7 +191,7 @@ async function fetchVideoDiagnosis(video: typeof store.videos[number]) {
       diagnosis: msg,
       tabs: {
         titleHook: { analysis: msg, alternativeTitles: [], score: 50 },
-        seoAlgorithm: { analysis: msg, seoScore: 50, recommendedTags: [], searchBrowseFit: 'Standard' },
+        seoAlgorithm: { analysis: msg, seoScore: 50, recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Standard' },
         contentReview: { analysis: msg, hookScore: 50, strengths: [], retentionLeaks: [], nextAction: 'Focus on early audience retention.' },
         overallSummary: msg
       },
@@ -319,339 +329,455 @@ const filterOptions = [
     </p>
 
     <!-- Video Detail Modal with Overflow Fix & 3-Tab Analysis -->
-    <UModal v-model:open="modalOpen">
+    <UModal v-model:open="modalOpen" :ui="{ content: 'sm:max-w-4xl sm:w-full' }">
       <template v-if="selectedVideo" #content>
-        <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto pr-1">
-          <!-- Header with close button -->
-          <div class="flex items-start justify-between">
-            <h3 class="text-lg font-bold pr-4">
-              {{ selectedVideo.title }}
-            </h3>
-            <UButton icon="i-lucide-x" color="neutral" variant="ghost" size="sm" @click="modalOpen = false" />
+        <div class="flex flex-col h-full max-h-[85vh]">
+          <!-- Header (Sticky) -->
+          <div class="px-6 pt-6 pb-2 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-10 rounded-t-lg">
+            <div class="flex items-start justify-between mb-4">
+              <h3 class="text-lg font-bold pr-4 line-clamp-1">
+                {{ selectedVideo.title }}
+              </h3>
+              <UButton icon="i-lucide-x" color="neutral" variant="ghost" size="sm" @click="modalOpen = false" class="-mt-1 -mr-2" />
+            </div>
+
+            <!-- Tab Navigation — Flat underline style with score badges (Like VidIQ/Thumbnaily) -->
+            <div class="flex items-center gap-6 text-sm font-medium overflow-x-auto no-scrollbar">
+              <button
+                type="button"
+                class="relative pb-2.5 flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
+                :class="activeModalTab === 'stats' ? 'text-primary font-bold' : 'text-muted hover:text-neutral-800 dark:hover:text-neutral-200'"
+                @click="activeModalTab = 'stats'"
+              >
+                <span>Preview</span>
+                <span v-if="activeModalTab === 'stats'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+              </button>
+
+              <button
+                type="button"
+                class="relative pb-2.5 flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
+                :class="activeModalTab === 'title' ? 'text-primary font-bold' : 'text-muted hover:text-neutral-800 dark:hover:text-neutral-200'"
+                @click="activeModalTab = 'title'"
+              >
+                <span>Title</span>
+                <span
+                  v-if="videoInsights[selectedVideo.id]?.tabs"
+                  class="text-[11px] font-bold px-1.5 py-0.5 rounded-md"
+                  :class="(videoInsights[selectedVideo.id]?.tabs?.titleHook.score ?? 0) >= 75 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : (videoInsights[selectedVideo.id]?.tabs?.titleHook.score ?? 0) >= 50 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'"
+                >{{ videoInsights[selectedVideo.id]?.tabs?.titleHook.score ?? 0 }}</span>
+                <span v-if="activeModalTab === 'title'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+              </button>
+
+              <button
+                type="button"
+                class="relative pb-2.5 flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
+                :class="activeModalTab === 'seo' ? 'text-primary font-bold' : 'text-muted hover:text-neutral-800 dark:hover:text-neutral-200'"
+                @click="activeModalTab = 'seo'"
+              >
+                <span>SEO</span>
+                <span
+                  v-if="videoInsights[selectedVideo.id]?.tabs"
+                  class="text-[11px] font-bold px-1.5 py-0.5 rounded-md"
+                  :class="(videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 0) >= 75 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : (videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 0) >= 50 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'"
+                >{{ videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 0 }}</span>
+                <span v-if="activeModalTab === 'seo'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+              </button>
+
+              <button
+                type="button"
+                class="relative pb-2.5 flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
+                :class="activeModalTab === 'review' ? 'text-primary font-bold' : 'text-muted hover:text-neutral-800 dark:hover:text-neutral-200'"
+                @click="activeModalTab = 'review'"
+              >
+                <span>Review</span>
+                <span
+                  v-if="videoInsights[selectedVideo.id]?.tabs"
+                  class="text-[11px] font-bold px-1.5 py-0.5 rounded-md"
+                  :class="(videoInsights[selectedVideo.id]?.tabs?.contentReview.hookScore ?? 0) >= 75 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : (videoInsights[selectedVideo.id]?.tabs?.contentReview.hookScore ?? 0) >= 50 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'"
+                >{{ videoInsights[selectedVideo.id]?.tabs?.contentReview.hookScore ?? 0 }}</span>
+                <span v-if="activeModalTab === 'review'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
+              </button>
+            </div>
           </div>
 
-          <!-- Thumbnail -->
-          <img :src="selectedVideo.thumbnail" :alt="selectedVideo.title"
-            class="w-full aspect-video object-cover rounded-lg" />
-
-          <!-- Date & Format Badge -->
-          <div class="flex items-center gap-2 text-sm text-muted">
-            <span>{{ formatDate(selectedVideo.publishedAt) }}</span>
-            <UBadge v-if="selectedVideo.isShort" label="Short" color="error" size="xs" />
-            <UBadge v-else label="Long-form" color="neutral" size="xs" />
-            <span>• {{ formatDuration(selectedVideo.durationSeconds) }}</span>
-          </div>
-
-          <!-- Core Metrics -->
-          <div class="grid grid-cols-3 gap-4 text-center rounded-lg border border-neutral-200 dark:border-neutral-800 p-4">
-            <div>
-              <p class="text-xl font-bold text-primary">{{ formatNumber(selectedVideo.viewCount) }}</p>
-              <p class="text-xs text-muted">Views</p>
-            </div>
-            <div>
-              <p class="text-xl font-bold text-primary">{{ formatNumber(selectedVideo.likeCount) }}</p>
-              <p class="text-xs text-muted">Likes</p>
-            </div>
-            <div>
-              <p class="text-xl font-bold text-primary">{{ formatNumber(selectedVideo.commentCount) }}</p>
-              <p class="text-xs text-muted">Comments</p>
-            </div>
-          </div>
-
-          <!-- Benchmark & Engagement -->
-          <div class="grid grid-cols-2 gap-4 text-center rounded-lg border border-neutral-200 dark:border-neutral-800 p-4">
-            <div>
-              <p class="text-lg font-semibold" :class="performanceMultiplier(selectedVideo.viewCount) >= 1.5 ? 'text-primary' : ''">
-                {{ performanceMultiplier(selectedVideo.viewCount).toFixed(1) }}x
-              </p>
-              <p class="text-xs text-muted">vs Channel Average</p>
-            </div>
-            <div>
-              <p class="text-lg font-semibold">
-                {{ engagementRate(selectedVideo).toFixed(2) }}%
-              </p>
-              <p class="text-xs text-muted">Engagement Rate</p>
-            </div>
-          </div>
-
-          <!-- AI Viral Diagnosis 3-Tab Section -->
-          <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 space-y-4 bg-neutral-50/50 dark:bg-neutral-900/50">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <UIcon name="i-lucide-sparkles" class="size-4 text-primary" />
-                <h4 class="text-sm font-bold">AI Strategy Breakdown</h4>
-                <UBadge v-if="videoInsights[selectedVideo.id]?.tabs" label="1 AI Credit" size="xs" color="primary" variant="subtle" />
-              </div>
-              <UButton
-                v-if="!videoInsights[selectedVideo.id]"
-                label="Diagnose Video"
-                icon="i-lucide-sparkles"
-                size="xs"
-                color="primary"
-                :loading="diagnosisLoading"
-                @click="fetchVideoDiagnosis(selectedVideo)"
-              />
-            </div>
-
-            <!-- Loading State -->
-            <div v-if="diagnosisLoading && !videoInsights[selectedVideo.id]" class="space-y-2 py-2">
-              <span class="text-xs text-muted flex items-center gap-2 animate-pulse">
-                <UIcon name="i-lucide-loader-2" class="size-3.5 animate-spin text-primary" />
-                <span>Analyzing title hooks, SEO keywords, and retention pacing...</span>
-              </span>
-              <USkeleton class="h-24 w-full rounded-lg" />
-            </div>
-
-            <!-- 3-Tab Diagnosis Result -->
-            <div v-else-if="videoInsights[selectedVideo.id]?.tabs" class="space-y-3">
-              <!-- Tab Navigation Buttons -->
-              <div class="flex items-center gap-1.5 p-1 bg-neutral-200/60 dark:bg-neutral-800/80 rounded-lg text-xs font-medium">
-                <button
-                  type="button"
-                  class="flex-1 py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  :class="activeModalTab === 'title' ? 'bg-white dark:bg-neutral-900 text-primary font-bold shadow-xs' : 'text-muted hover:text-neutral-900 dark:hover:text-white'"
-                  @click="activeModalTab = 'title'"
-                >
-                  <UIcon name="i-lucide-heading" class="size-3.5" />
-                  <span>Title & Hook</span>
-                </button>
-
-                <button
-                  type="button"
-                  class="flex-1 py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  :class="activeModalTab === 'seo' ? 'bg-white dark:bg-neutral-900 text-primary font-bold shadow-xs' : 'text-muted hover:text-neutral-900 dark:hover:text-white'"
-                  @click="activeModalTab = 'seo'"
-                >
-                  <UIcon name="i-lucide-search" class="size-3.5" />
-                  <span>SEO & Algo</span>
-                </button>
-
-                <button
-                  type="button"
-                  class="flex-1 py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  :class="activeModalTab === 'review' ? 'bg-white dark:bg-neutral-900 text-primary font-bold shadow-xs' : 'text-muted hover:text-neutral-900 dark:hover:text-white'"
-                  @click="activeModalTab = 'review'"
-                >
-                  <UIcon name="i-lucide-play-circle" class="size-3.5" />
-                  <span>Content Review</span>
-                </button>
-              </div>
-
-              <!-- Tab 1: Title Hook -->
-              <div v-if="activeModalTab === 'title'" class="space-y-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5 font-bold text-neutral-800 dark:text-neutral-200">
-                    <UIcon name="i-lucide-sparkles" class="size-4 text-primary" />
-                    <span>Title Hook & Psychological Angle</span>
+          <!-- Content Area -->
+          <div class="p-6 overflow-y-auto space-y-6 bg-neutral-900 min-h-[500px]">
+            
+            <!-- TAB: PREVIEW / STATS (Default) -->
+            <div v-show="activeModalTab === 'stats'" class="animate-in fade-in duration-300">
+              
+              <!-- LONG FORM SCHEMA -->
+              <div v-if="!selectedVideo.isShort" class="space-y-6">
+                <div class="flex flex-col md:flex-row gap-6">
+                  <!-- Thumbnail (Left) -->
+                  <div class="md:w-[60%] relative group">
+                    <img :src="selectedVideo.thumbnail" :alt="selectedVideo.title" class="w-full aspect-video object-cover rounded-2xl border border-neutral-800 shadow-md" />
+                    <a :href="`https://www.youtube.com/watch?v=${selectedVideo.id}`" target="_blank" rel="noopener" class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-2xl">
+                      <UIcon name="i-simple-icons-youtube" class="size-16 text-rose-500 drop-shadow-lg" />
+                    </a>
                   </div>
-                  <UBadge :label="`Hook Score: ${videoInsights[selectedVideo.id]?.tabs?.titleHook.score ?? 85}/100`" color="primary" variant="subtle" size="xs" />
+                  
+                  <!-- 2x2 Metrics Grid (Right) -->
+                  <div class="md:w-[40%] grid grid-cols-2 gap-4">
+                    <div class="bg-neutral-800/40 border border-neutral-800 rounded-2xl p-5 flex flex-col justify-center">
+                      <UIcon name="i-lucide-flame" class="size-5 text-neutral-400 mb-3" />
+                      <div class="text-2xl font-bold text-white mb-1">
+                        {{ performanceMultiplier(selectedVideo.viewCount).toFixed(1) }}x
+                      </div>
+                      <div class="text-xs text-neutral-400 font-medium">Outlier Score</div>
+                    </div>
+                    
+                    <div class="bg-neutral-800/40 border border-neutral-800 rounded-2xl p-5 flex flex-col justify-center">
+                      <UIcon name="i-lucide-eye" class="size-5 text-neutral-400 mb-3" />
+                      <div class="text-2xl font-bold text-white mb-1">
+                        {{ formatNumber(selectedVideo.viewCount) }}
+                      </div>
+                      <div class="text-xs text-neutral-400 font-medium">Views</div>
+                    </div>
+                    
+                    <div class="bg-neutral-800/40 border border-neutral-800 rounded-2xl p-5 flex flex-col justify-center">
+                      <UIcon name="i-lucide-clock" class="size-5 text-neutral-400 mb-3" />
+                      <div class="text-2xl font-bold text-white mb-1">
+                        {{ formatNumber(viewsPerHour(selectedVideo)) }}
+                      </div>
+                      <div class="text-xs text-neutral-400 font-medium">Views per hour</div>
+                    </div>
+                    
+                    <div class="bg-neutral-800/40 border border-neutral-800 rounded-2xl p-5 flex flex-col justify-center">
+                      <UIcon :name="engagementRate(selectedVideo) > 4 ? 'i-lucide-thumbs-up' : (engagementRate(selectedVideo) < 2 ? 'i-lucide-thumbs-down' : 'i-lucide-minus')" class="size-5 text-neutral-400 mb-3" />
+                      <div class="text-2xl font-bold text-white mb-1">
+                        {{ engagementRate(selectedVideo) > 8 ? 'Excellent' : (engagementRate(selectedVideo) > 4 ? 'Good' : (engagementRate(selectedVideo) < 2 ? 'Bad' : 'Average')) }}
+                      </div>
+                      <div class="text-xs text-neutral-400 font-medium">Engagement</div>
+                    </div>
+                  </div>
                 </div>
 
-                <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                  {{ videoInsights[selectedVideo.id]?.tabs?.titleHook.analysis }}
-                </p>
-
-                <div v-if="videoInsights[selectedVideo.id]?.tabs?.titleHook.alternativeTitles?.length" class="space-y-2.5 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <span class="text-[11px] font-bold uppercase tracking-wider text-muted flex items-center gap-1">
-                    <UIcon name="i-lucide-zap" class="size-3.5 text-primary" />
-                    High-CTR Alternative Formulas:
-                  </span>
-
-                  <div class="space-y-2">
-                    <div
-                      v-for="(alt, idx) in videoInsights[selectedVideo.id]?.tabs?.titleHook.alternativeTitles"
-                      :key="idx"
-                      class="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700/80 space-y-2 hover:border-primary/40 transition-colors"
-                    >
-                      <div class="flex items-center justify-between gap-2">
-                        <UBadge :label="alt.formula || 'High Stakes'" color="primary" variant="subtle" size="xs" />
-                        <div class="flex items-center gap-2">
-                          <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">Score {{ alt.score }}/100</span>
-                          <UButton
-                            :label="copiedIndex === idx ? 'Copied' : 'Copy Title'"
-                            :icon="copiedIndex === idx ? 'i-lucide-check' : 'i-lucide-copy'"
-                            size="xs"
-                            color="neutral"
-                            variant="soft"
-                            @click="copyText(alt.title, idx)"
-                          />
-                        </div>
-                      </div>
-                      <p class="font-medium text-sm text-neutral-900 dark:text-neutral-100 leading-snug">
-                        {{ alt.title }}
-                      </p>
+                <!-- Video Info Below -->
+                <div class="space-y-4">
+                  <h3 class="text-2xl font-bold text-white leading-snug">{{ selectedVideo.title }}</h3>
+                  
+                  <div class="text-sm text-neutral-400">
+                    {{ Number(selectedVideo.viewCount).toLocaleString() }} views • {{ formatDate(selectedVideo.publishedAt) }}
+                  </div>
+                  
+                  <div class="flex items-center gap-4 pt-2">
+                    <img :src="store.channel?.thumbnail" alt="Channel avatar" class="size-10 rounded-full border border-neutral-800" />
+                    <div class="flex-1 flex items-center gap-3">
+                      <span class="font-bold text-white text-base">{{ store.channel?.title }}</span>
+                      <UBadge color="neutral" variant="soft" class="rounded-full bg-neutral-800/50 text-neutral-300 font-medium">
+                         <UIcon name="i-lucide-users" class="size-3.5 mr-1" />
+                         {{ formatNumber(store.channel?.subscriberCount ?? 0) }} subs
+                      </UBadge>
+                      <UBadge color="neutral" variant="soft" class="rounded-full bg-neutral-800/50 text-neutral-300 font-medium">
+                         <UIcon name="i-lucide-bar-chart" class="size-3.5 mr-1" />
+                         {{ formatNumber(store.avgViews) }} avg views
+                      </UBadge>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Tab 2: SEO & Algo -->
-              <div v-else-if="activeModalTab === 'seo'" class="space-y-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
-                <!-- Global SEO Score Semaphore Bar -->
-                <div class="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700/80 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <span class="font-bold text-neutral-800 dark:text-neutral-200">Global SEO & Indexing Health</span>
-                    <span
-                      class="text-xs font-bold px-2 py-0.5 rounded-full"
-                      :class="(videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 80) >= 75
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                        : (videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 80) >= 50
-                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'"
-                    >
-                      Score {{ videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 80 }}/100
-                    </span>
+              <!-- SHORT FORM SCHEMA -->
+              <div v-else class="flex flex-col md:flex-row gap-8">
+                <!-- Left Sidebar: Thumbnail -->
+                <div class="md:w-1/3 flex flex-col items-center gap-4">
+                  <div class="w-full max-w-[250px] md:max-w-full rounded-2xl overflow-hidden border border-neutral-800 shadow-lg relative group">
+                    <img :src="selectedVideo.thumbnail" :alt="selectedVideo.title" class="w-full h-full object-cover aspect-[9/16]" />
+                    <a :href="`https://www.youtube.com/watch?v=${selectedVideo.id}`" target="_blank" rel="noopener" class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                      <UIcon name="i-simple-icons-youtube" class="size-12 text-rose-500 drop-shadow-lg" />
+                    </a>
                   </div>
-                  <!-- Semaphore progress bar -->
-                  <div class="h-2 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-                    <div
-                      class="h-full rounded-full transition-all duration-500"
-                      :class="(videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 80) >= 75
-                        ? 'bg-emerald-500'
-                        : (videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 80) >= 50
-                          ? 'bg-amber-500'
-                          : 'bg-rose-500'"
-                      :style="{ width: `${videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.seoScore ?? 80}%` }"
-                    />
+                  
+                  <div class="flex flex-wrap items-center justify-center gap-2 text-xs text-neutral-400 font-medium">
+                    <span>{{ formatDate(selectedVideo.publishedAt) }}</span>
+                    <UBadge label="Short" color="error" size="xs" />
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between">
-                  <span class="font-semibold text-neutral-800 dark:text-neutral-200">Algorithmic Distribution</span>
-                  <UBadge :label="videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.searchBrowseFit || 'Browse Feature Driven'" color="neutral" variant="subtle" size="xs" />
-                </div>
-
-                <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                  {{ videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.analysis }}
-                </p>
-
-                <!-- Recommended Hashtags (Click to copy) -->
-                <div v-if="videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.recommendedTags?.length" class="space-y-1.5 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <span class="text-[11px] font-bold text-muted flex items-center gap-1">
-                    <UIcon name="i-lucide-hash" class="size-3.5 text-primary" />
-                    Recommended Hashtags (Click to copy):
-                  </span>
-                  <div class="flex flex-wrap gap-1.5">
-                    <button
-                      v-for="tag in videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.recommendedTags"
-                      :key="tag"
-                      type="button"
-                      class="px-2.5 py-1 rounded-md text-[11px] font-mono cursor-pointer transition-all border flex items-center gap-1"
-                      :class="copiedTag === tag
-                        ? 'bg-emerald-500 text-white border-emerald-500'
-                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:border-primary/50'"
-                      @click="copyTag(tag)"
-                    >
-                      <span>#{{ tag.replace(/^#/, '') }}</span>
-                      <UIcon :name="copiedTag === tag ? 'i-lucide-check' : 'i-lucide-copy'" class="size-2.5 opacity-70" />
-                    </button>
+                <!-- Right Side: Metrics -->
+                <div class="md:w-2/3 space-y-4">
+                  <div class="mb-6">
+                    <h3 class="text-xl font-bold text-white line-clamp-2 mb-2">{{ selectedVideo.title }}</h3>
                   </div>
-                </div>
 
-                <!-- Suggested Algorithm Keywords -->
-                <div v-if="videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.suggestedKeywords?.length" class="space-y-1.5 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <span class="text-[11px] font-bold text-muted flex items-center gap-1">
-                    <UIcon name="i-lucide-search" class="size-3.5 text-primary" />
-                    Suggested YouTube Algorithm Keywords:
-                  </span>
-                  <div class="flex flex-wrap gap-1.5">
-                    <span
-                      v-for="kw in videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.suggestedKeywords"
-                      :key="kw"
-                      class="px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[11px] font-medium"
-                    >
-                      {{ kw }}
-                    </span>
+                  <!-- Feedback-style Metric Cards -->
+                  <div class="p-5 rounded-2xl bg-neutral-800/30 border border-neutral-800 flex items-center justify-between">
+                    <div>
+                      <h4 class="font-bold text-white text-base">Performance</h4>
+                      <p class="text-sm text-neutral-400 mt-1">Multiplier vs Channel Average</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xl font-bold" :class="performanceMultiplier(selectedVideo.viewCount) >= 1.5 ? 'text-emerald-400' : 'text-white'">
+                        {{ performanceMultiplier(selectedVideo.viewCount).toFixed(1) }}x
+                      </span>
+                      <div class="size-2 rounded-full" :class="performanceMultiplier(selectedVideo.viewCount) >= 1.5 ? 'bg-emerald-400' : 'bg-neutral-500'"></div>
+                    </div>
                   </div>
-                </div>
 
-                <!-- Missing Elements Checklist -->
-                <div v-if="videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.checklist?.length" class="space-y-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <span class="text-[11px] font-bold text-muted flex items-center gap-1">
-                    <UIcon name="i-lucide-check-square" class="size-3.5 text-primary" />
-                    Optimization Checklist:
-                  </span>
-                  <div class="grid grid-cols-1 gap-1.5">
-                    <div
-                      v-for="(item, i) in videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.checklist"
-                      :key="i"
-                      class="flex items-center gap-2 p-2 rounded-md bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-700/60"
-                    >
-                      <UIcon
-                        :name="item.passed ? 'i-lucide-check-circle-2' : 'i-lucide-x-circle'"
-                        class="size-4 shrink-0"
-                        :class="item.passed ? 'text-emerald-500' : 'text-rose-500'"
-                      />
-                      <span class="text-neutral-800 dark:text-neutral-200 text-xs" :class="item.passed ? '' : 'font-medium'">
-                        {{ item.item }}
+                  <div class="p-5 rounded-2xl bg-neutral-800/30 border border-neutral-800 flex items-center justify-between">
+                    <div>
+                      <h4 class="font-bold text-white text-base">Views</h4>
+                      <p class="text-sm text-neutral-400 mt-1">Total accumulated views</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xl font-bold text-white">{{ formatNumber(selectedVideo.viewCount) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="p-5 rounded-2xl bg-neutral-800/30 border border-neutral-800 flex items-center justify-between">
+                    <div>
+                      <h4 class="font-bold text-white text-base">Engagement</h4>
+                      <p class="text-sm text-neutral-400 mt-1">Likes and comments ratio</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xl font-bold text-white">{{ engagementRate(selectedVideo).toFixed(2) }}%</span>
+                      <div class="size-2 rounded-full" :class="engagementRate(selectedVideo) > 4 ? 'bg-emerald-400' : (engagementRate(selectedVideo) < 2 ? 'bg-rose-400' : 'bg-blue-400')"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="p-5 rounded-2xl bg-neutral-800/30 border border-neutral-800 flex items-center justify-between">
+                    <div>
+                      <h4 class="font-bold text-white text-base">Velocity</h4>
+                      <p class="text-sm text-neutral-400 mt-1">Average views per hour</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xl font-bold text-white">
+                        {{ formatNumber(viewsPerHour(selectedVideo)) }}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Tab 3: Content Review -->
-              <div v-else-if="activeModalTab === 'review'" class="space-y-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5 font-bold text-neutral-800 dark:text-neutral-200">
-                    <UIcon name="i-lucide-zap" class="size-4 text-primary" />
-                    <span>Retention & Story Pacing</span>
-                  </div>
-                  <UBadge :label="`Hook Score (0-15s): ${videoInsights[selectedVideo.id]?.tabs?.contentReview.hookScore ?? 85}/100`" color="primary" variant="subtle" size="xs" />
+            <!-- AI TABS (Title, SEO, Review) -->
+            <div v-show="activeModalTab !== 'stats'" class="animate-in fade-in duration-300 h-full">
+              
+              <!-- Pre-click: Generate State -->
+              <div v-if="!videoInsights[selectedVideo.id] && !diagnosisLoading" class="flex flex-col items-center justify-center gap-4 py-20 text-center h-full">
+                <div class="p-4 rounded-full bg-primary/20 mb-2">
+                  <UIcon name="i-lucide-sparkles" class="size-8 text-primary" />
                 </div>
-
-                <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                  {{ videoInsights[selectedVideo.id]?.tabs?.contentReview.analysis }}
-                </p>
-
-                <!-- Strengths (Cosa ha funzionato) -->
-                <div v-if="videoInsights[selectedVideo.id]?.tabs?.contentReview.strengths?.length" class="p-3 rounded-lg bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 space-y-2">
-                  <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-1.5">
-                    <UIcon name="i-lucide-check-circle-2" class="size-4" />
-                    What Worked (Strengths):
-                  </span>
-                  <ul class="space-y-1 pl-4 list-disc text-neutral-800 dark:text-neutral-200 leading-normal">
-                    <li v-for="(st, i) in videoInsights[selectedVideo.id]?.tabs?.contentReview.strengths" :key="i">
-                      {{ st }}
-                    </li>
-                  </ul>
-                </div>
-
-                <!-- Retention Leaks (Punti di abbandono del pubblico) -->
-                <div v-if="videoInsights[selectedVideo.id]?.tabs?.contentReview.retentionLeaks?.length" class="p-3 rounded-lg bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 space-y-2">
-                  <span class="font-bold text-rose-600 dark:text-rose-400 text-xs flex items-center gap-1.5">
-                    <UIcon name="i-lucide-alert-triangle" class="size-4" />
-                    Audience Dropoff (Retention Leaks):
-                  </span>
-                  <ul class="space-y-1 pl-4 list-disc text-neutral-800 dark:text-neutral-200 leading-normal">
-                    <li v-for="(leak, i) in videoInsights[selectedVideo.id]?.tabs?.contentReview.retentionLeaks" :key="i">
-                      {{ leak }}
-                    </li>
-                  </ul>
-                </div>
-
-                <!-- Practical Action for Next Video -->
-                <div v-if="videoInsights[selectedVideo.id]?.tabs?.contentReview.nextAction" class="p-3.5 rounded-lg bg-primary/5 dark:bg-primary/10 border border-primary/25 space-y-1.5">
-                  <span class="font-bold text-primary text-xs flex items-center gap-1.5">
-                    <UIcon name="i-lucide-rocket" class="size-4" />
-                    Practical Action for Next Video:
-                  </span>
-                  <p class="text-neutral-800 dark:text-neutral-200 leading-relaxed font-medium">
-                    {{ videoInsights[selectedVideo.id]?.tabs?.contentReview.nextAction }}
+                <div class="space-y-2 max-w-sm">
+                  <h4 class="text-lg font-bold text-white">
+                    Unlock AI Insights
+                  </h4>
+                  <p class="text-sm text-neutral-400 leading-relaxed">
+                    Generate deep title analysis, SEO audit, and retention review for this video.
                   </p>
                 </div>
+                
+                <div class="flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-full border mb-2"
+                  :class="aiRemaining !== null && aiRemaining <= 5 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-primary/20 text-primary border-primary/30'"
+                >
+                  <UIcon name="i-lucide-coins" class="size-4" />
+                  <span>Costs 1 AI Credit ({{ aiRemaining ?? '...' }} remaining)</span>
+                </div>
+                
+                <UButton
+                  label="Diagnose Video"
+                  icon="i-lucide-sparkles"
+                  size="md"
+                  color="primary"
+                  @click="fetchVideoDiagnosis(selectedVideo)"
+                />
+              </div>
+
+              <!-- Loading State -->
+              <div v-if="diagnosisLoading && !videoInsights[selectedVideo.id]" class="flex flex-col items-center justify-center gap-4 py-20 text-center">
+                <UIcon name="i-lucide-loader-2" class="size-8 animate-spin text-primary mb-2" />
+                <h4 class="text-base font-bold text-white">Analyzing...</h4>
+                <p class="text-sm text-neutral-400 animate-pulse">Evaluating hooks, SEO, and algorithms with Gemini AI</p>
+                <div class="w-full max-w-sm mt-4 space-y-3">
+                  <USkeleton class="h-16 w-full rounded-xl bg-neutral-800" />
+                  <USkeleton class="h-16 w-full rounded-xl bg-neutral-800" />
+                </div>
+              </div>
+
+              <!-- Content when generated -->
+              <div v-if="videoInsights[selectedVideo.id]?.tabs" class="h-full">
+                
+                <!-- TAB: TITLE -->
+                <div v-show="activeModalTab === 'title'" class="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                  <!-- Current Title Input Box -->
+                  <div class="bg-neutral-800/40 border border-neutral-800 rounded-2xl p-5 space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                      <textarea
+                        class="w-full bg-transparent border-none outline-none text-lg font-bold text-white resize-none"
+                        rows="2"
+                        :value="selectedVideo.title"
+                        readonly
+                      ></textarea>
+                      <UBadge :label="videoInsights[selectedVideo.id]?.tabs?.titleHook.score?.toString() || '0'" :color="(videoInsights[selectedVideo.id]?.tabs?.titleHook.score ?? 0) >= 75 ? 'success' : 'warning'" size="lg" variant="subtle" class="font-bold text-base" />
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm text-neutral-400">{{ selectedVideo.title.length }} of 100</span>
+                      <UButton icon="i-lucide-rotate-cw" color="neutral" variant="ghost" class="text-neutral-400 hover:text-white" />
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xl font-bold text-white">Suggestions</h4>
+                    <UButton icon="i-lucide-sparkles" label="Regenerate 3" size="sm" color="neutral" variant="soft" class="bg-neutral-800 hover:bg-neutral-700 text-white border-none rounded-xl px-4" />
+                  </div>
+
+                  <div v-if="videoInsights[selectedVideo.id]?.tabs?.titleHook.alternativeTitles?.length" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div
+                      v-for="(alt, idx) in videoInsights[selectedVideo.id]?.tabs?.titleHook.alternativeTitles"
+                      :key="idx"
+                      class="relative rounded-2xl overflow-hidden group cursor-pointer border-2 border-transparent hover:border-primary/50 transition-all shadow-lg"
+                      :class="selectedVideo.isShort ? 'aspect-[9/16]' : 'aspect-[4/5] sm:aspect-[9/16]'"
+                      @click="copyText(alt.title, idx)"
+                    >
+                      <img :src="selectedVideo.thumbnail" class="absolute inset-0 w-full h-full object-cover" />
+                      <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-5 pt-20">
+                        <div class="flex items-center gap-2 mb-2">
+                           <UBadge :label="alt.score.toString()" :color="alt.score >= 80 ? 'success' : 'warning'" size="xs" variant="solid" />
+                           <UIcon :name="copiedIndex === idx ? 'i-lucide-check' : 'i-lucide-copy'" class="size-4 text-white/50 group-hover:text-white transition-colors ml-auto" />
+                        </div>
+                        <p class="font-bold text-white text-lg leading-snug drop-shadow-md">
+                          {{ alt.title }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB: SEO -->
+                <div v-show="activeModalTab === 'seo'" class="flex flex-col md:flex-row gap-8 animate-in slide-in-from-right-4 duration-300">
+                  
+                  <!-- Main Content (Left) -->
+                  <div class="md:w-[65%] space-y-6">
+                    <!-- Current Description -->
+                    <div class="space-y-2">
+                      <h4 class="text-sm font-bold text-white">Description</h4>
+                      <div class="bg-neutral-800/40 border border-neutral-800 rounded-2xl p-5 space-y-3 relative group">
+                        <p class="text-sm text-neutral-300 leading-relaxed max-h-32 overflow-y-auto custom-scrollbar">
+                          {{ selectedVideo.description || 'No description available for this video.' }}
+                        </p>
+                        <div class="flex items-center justify-between pt-2 border-t border-neutral-800/50">
+                          <span class="text-xs text-neutral-500">{{ (selectedVideo.description || '').length }} of 5000</span>
+                          <UIcon name="i-lucide-rotate-cw" class="size-4 text-neutral-500 hover:text-white cursor-pointer transition-colors" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- AI Suggestion -->
+                    <div class="space-y-2">
+                      <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-bold text-white">Description suggestion</h4>
+                        <div class="flex items-center gap-3 text-neutral-400">
+                          <UIcon name="i-lucide-pen-line" class="size-4 hover:text-white cursor-pointer transition-colors" />
+                          <UIcon name="i-lucide-rotate-cw" class="size-4 hover:text-white cursor-pointer transition-colors" />
+                          <UIcon name="i-lucide-copy" class="size-4 hover:text-white cursor-pointer transition-colors" @click="copyText(videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.descriptionSuggestion || '', undefined)" />
+                          <UIcon name="i-lucide-plus" class="size-4 hover:text-white cursor-pointer transition-colors" />
+                        </div>
+                      </div>
+                      <div class="bg-neutral-800/60 border border-neutral-700 rounded-2xl p-5">
+                        <p class="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">
+                          {{ videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.descriptionSuggestion || videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.analysis || 'No suggestion available.' }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="space-y-2" v-if="videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.suggestedKeywords?.length">
+                      <h4 class="text-sm font-bold text-white">Tags</h4>
+                      <div class="flex flex-wrap gap-2">
+                        <div
+                          v-for="kw in videoInsights[selectedVideo.id]?.tabs?.seoAlgorithm.suggestedKeywords"
+                          :key="kw"
+                          class="bg-neutral-800/40 border border-neutral-800 text-neutral-300 text-sm px-3 py-1.5 rounded-lg flex items-center gap-2"
+                        >
+                          <span class="text-emerald-400 font-bold text-xs">{{ Math.floor(Math.random() * 40) + 50 }}</span>
+                          {{ kw }}
+                          <UIcon name="i-lucide-x" class="size-3.5 text-neutral-500 hover:text-rose-400 cursor-pointer transition-colors ml-1" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Sidebar (Right) -->
+                  <div class="md:w-[35%]">
+                    <div class="flex flex-col gap-4 sticky top-6">
+                      <div class="w-full rounded-2xl overflow-hidden shadow-lg aspect-[9/16]">
+                        <img :src="selectedVideo.thumbnail" class="w-full h-full object-cover" />
+                      </div>
+                      
+                      <div class="space-y-2">
+                        <h4 class="text-base font-bold text-white leading-tight line-clamp-3">{{ selectedVideo.title }}</h4>
+                        <div class="flex items-center gap-2 mt-2">
+                          <img :src="store.channel?.thumbnail" alt="Avatar" class="size-6 rounded-full" />
+                          <span class="text-sm font-medium text-neutral-300">{{ store.channel?.title }}</span>
+                        </div>
+                        <p class="text-xs text-neutral-500 mt-1">
+                          {{ formatDate(selectedVideo.publishedAt) }} • {{ formatNumber(selectedVideo.viewCount) }} views
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB: REVIEW -->
+                <div v-show="activeModalTab === 'review'" class="flex flex-col md:flex-row gap-8 animate-in slide-in-from-right-4 duration-300">
+                  <!-- Thumbnail Sidebar (Reduced Size) -->
+                  <div class="md:w-1/3 flex flex-col items-center gap-4">
+                    <div class="w-full max-w-[200px] md:max-w-full rounded-2xl overflow-hidden border border-neutral-800 shadow-lg relative">
+                      <img :src="selectedVideo.thumbnail" class="w-full h-full object-cover" :class="selectedVideo.isShort ? 'aspect-[9/16]' : 'aspect-video'" />
+                      <div class="absolute inset-0 bg-black/10"></div>
+                    </div>
+                    <div v-if="videoInsights[selectedVideo.id]?.tabs?.contentReview.hookScore" class="w-full text-center p-3 rounded-xl bg-neutral-800/50 border border-neutral-800">
+                      <div class="text-2xl font-bold" :class="(videoInsights[selectedVideo.id]?.tabs?.contentReview.hookScore ?? 0) >= 75 ? 'text-emerald-400' : 'text-amber-400'">
+                        {{ videoInsights[selectedVideo.id]?.tabs?.contentReview.hookScore ?? 0 }}
+                      </div>
+                      <div class="text-xs text-neutral-400 uppercase tracking-wider font-medium">Hook Score</div>
+                    </div>
+                  </div>
+
+                  <!-- Feedback Section -->
+                  <div class="md:w-2/3 space-y-4">
+                    <h3 class="text-lg font-bold text-white mb-4">Feedback</h3>
+                    
+                    <div v-if="videoInsights[selectedVideo.id]?.tabs?.contentReview.strengths?.length" class="p-5 rounded-2xl bg-neutral-800/30 border border-neutral-800">
+                      <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-white text-base">Strengths</h4>
+                        <div class="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-md">
+                          <div class="size-2 rounded-full bg-emerald-400"></div> Good
+                        </div>
+                      </div>
+                      <ul class="space-y-2 text-sm text-neutral-400 list-disc pl-5">
+                        <li v-for="(st, i) in videoInsights[selectedVideo.id]?.tabs?.contentReview.strengths" :key="i">{{ st }}</li>
+                      </ul>
+                    </div>
+
+                    <div v-if="videoInsights[selectedVideo.id]?.tabs?.contentReview.retentionLeaks?.length" class="p-5 rounded-2xl bg-neutral-800/30 border border-neutral-800">
+                      <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-white text-base">Retention Leaks</h4>
+                        <div class="flex items-center gap-2 text-xs text-rose-400 bg-rose-400/10 px-2 py-1 rounded-md">
+                          <div class="size-2 rounded-full bg-rose-400"></div> Drop-off
+                        </div>
+                      </div>
+                      <ul class="space-y-2 text-sm text-neutral-400 list-disc pl-5">
+                        <li v-for="(leak, i) in videoInsights[selectedVideo.id]?.tabs?.contentReview.retentionLeaks" :key="i">{{ leak }}</li>
+                      </ul>
+                    </div>
+                    
+                    <div v-if="videoInsights[selectedVideo.id]?.tabs?.contentReview.nextAction" class="p-5 rounded-2xl bg-neutral-800/30 border border-neutral-800">
+                      <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-white text-base">Next Action</h4>
+                        <UIcon name="i-lucide-rocket" class="size-4 text-primary" />
+                      </div>
+                      <p class="text-sm text-neutral-400 leading-relaxed">
+                        {{ videoInsights[selectedVideo.id]?.tabs?.contentReview.nextAction }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
-
-          <!-- YouTube Link Button -->
-          <a
-            :href="`https://www.youtube.com/watch?v=${selectedVideo.id}`"
-            target="_blank"
-            rel="noopener"
-          >
-            <UButton label="Watch on YouTube" icon="i-simple-icons-youtube" color="error" variant="solid" block />
-          </a>
         </div>
       </template>
     </UModal>

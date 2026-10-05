@@ -309,16 +309,18 @@ onMounted(async () => {
           No previous sessions yet.
         </div>
 
-        <button
+        <div
           v-for="s in sessions"
           v-else
           :key="s.id"
-          type="button"
+          role="button"
+          tabindex="0"
           class="group w-full flex items-center justify-between p-2.5 rounded-lg text-left text-xs transition-colors cursor-pointer"
           :class="activeSessionId === s.id
             ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold'
             : 'text-muted hover:bg-neutral-100/60 dark:hover:bg-neutral-800/40 hover:text-neutral-800 dark:hover:text-neutral-200'"
           @click="selectSession(s.id)"
+          @keydown.enter="selectSession(s.id)"
         >
           <div class="flex items-center gap-2 min-w-0 flex-1">
             <UIcon name="i-lucide-message-square" class="size-3.5 shrink-0 text-primary" />
@@ -329,11 +331,11 @@ onMounted(async () => {
             type="button"
             class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 rounded transition-opacity cursor-pointer shrink-0"
             title="Delete session"
-            @click="deleteSession(s.id, $event)"
+            @click.stop="deleteSession(s.id, $event)"
           >
             <UIcon name="i-lucide-trash-2" class="size-3" />
           </button>
-        </button>
+        </div>
       </div>
 
       <!-- Quota Counter Card (VidIQ Pro Style) -->

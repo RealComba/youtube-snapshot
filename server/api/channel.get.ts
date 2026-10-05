@@ -12,6 +12,9 @@ interface YoutubeChannelListResponse {
       description: string
       thumbnails: {
         medium: { url: string }
+        high?: { url: string }
+        standard?: { url: string }
+        maxres?: { url: string }
       }
     }
     statistics: {
@@ -46,7 +49,7 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
     })
   }
 
-  const cacheKey = `yt:channel:${handle ?? id}`
+  const cacheKey = `yt:channel:v2:${handle ?? id}`
   const redis = useRedis()
 
   // 1. Controlla la cache prima di chiamare YouTube
@@ -158,7 +161,7 @@ function buildChannelPayload(channel: NonNullable<YoutubeChannelListResponse['it
     id: channel.id,
     title: channel.snippet.title,
     description: channel.snippet.description,
-    thumbnail: channel.snippet.thumbnails.medium.url,
+    thumbnail: channel.snippet.thumbnails.high?.url || channel.snippet.thumbnails.medium.url,
     subscriberCount: Number(channel.statistics.subscriberCount),
     viewCount: Number(channel.statistics.viewCount),
     videoCount: Number(channel.statistics.videoCount)

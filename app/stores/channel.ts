@@ -13,6 +13,7 @@ interface ChannelData {
 interface VideoData {
     id: string
     title: string
+    description: string
     publishedAt: string
     thumbnail: string
     viewCount: number
