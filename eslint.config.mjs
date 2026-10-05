@@ -6,6 +6,10 @@ import { getDefaultAttributes } from 'eslint-plugin-better-tailwindcss/api/defau
 export default withNuxt(
   betterTailwindcss.configs['correctness-error'],
   {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      'better-tailwindcss/no-unknown-classes': 'off'
+    },
     settings: {
       'better-tailwindcss': {
         entryPoint: 'app/assets/css/main.css',

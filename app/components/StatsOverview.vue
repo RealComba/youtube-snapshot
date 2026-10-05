@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const store = useChannelStore()
 import { useFormatters } from '~/composables/useFormatters'
+const store = useChannelStore()
 
 const { formatNumber } = useFormatters()
 
