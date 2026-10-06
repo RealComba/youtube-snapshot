@@ -10,6 +10,7 @@ interface YoutubeChannelListResponse {
     snippet: {
       title: string
       description: string
+      customUrl?: string
       thumbnails: {
         medium: { url: string }
         high?: { url: string }
@@ -49,7 +50,7 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
     })
   }
 
-  const cacheKey = `yt:channel:v2:${handle ?? id}`
+  const cacheKey = `yt:channel:v3:${handle ?? id}`
   const redis = useRedis()
 
   // 1. Controlla la cache prima di chiamare YouTube
@@ -109,9 +110,7 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
       })
     }
 
-
-
-    const payload = buildChannelPayload(channel)
+    const payload = buildChannelPayload(channel, typeof handle === 'string' ? handle : undefined)
 
     await redis.set(cacheKey, payload, { ex: CACHE_TTL_SECONDS })
 
@@ -122,11 +121,12 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
         where: { id: payload.id },
         create: {
           id: payload.id,
-          handle: typeof handle === 'string' ? handle : null,
+          handle: payload.handle || (typeof handle === 'string' ? handle : null),
           title: payload.title,
           thumbnail: payload.thumbnail
         },
         update: {
+          handle: payload.handle || (typeof handle === 'string' ? handle : null),
           title: payload.title,
           thumbnail: payload.thumbnail
         }
@@ -156,9 +156,15 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
   }
 })
 
-function buildChannelPayload(channel: NonNullable<YoutubeChannelListResponse['items']>[number]) {
+function buildChannelPayload(channel: NonNullable<YoutubeChannelListResponse['items']>[number], fallbackHandle?: string) {
+  const customUrl = channel.snippet.customUrl
+  const resolvedHandle = customUrl
+    ? (customUrl.startsWith('@') ? customUrl : `@${customUrl}`)
+    : (fallbackHandle ? (fallbackHandle.startsWith('@') ? fallbackHandle : `@${fallbackHandle}`) : undefined)
+
   return {
     id: channel.id,
+    handle: resolvedHandle,
     title: channel.snippet.title,
     description: channel.snippet.description,
     thumbnail: channel.snippet.thumbnails.high?.url || channel.snippet.thumbnails.medium.url,

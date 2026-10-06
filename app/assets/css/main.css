@@ -4,3 +4,171 @@
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
 }
+
+/* Beautiful, legible chat markdown styling */
+.chat-markdown {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--color-neutral-800);
+}
+
+:is(.dark) .chat-markdown {
+  color: var(--color-neutral-200);
+}
+
+.chat-markdown p {
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+  line-height: 1.75;
+}
+
+.chat-markdown p:first-child {
+  margin-top: 0;
+}
+
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  color: var(--color-neutral-900);
+  border-bottom: 1px solid var(--color-neutral-200);
+  padding-bottom: 0.4rem;
+}
+
+:is(.dark) .chat-markdown h1 {
+  color: var(--color-neutral-50);
+  border-color: var(--color-neutral-800);
+}
+
+.chat-markdown h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 1.6rem;
+  margin-bottom: 0.65rem;
+  line-height: 1.35;
+  color: var(--color-neutral-900);
+}
+
+:is(.dark) .chat-markdown h2 {
+  color: var(--color-neutral-100);
+}
+
+.chat-markdown h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 1.35rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  color: var(--color-primary);
+}
+
+.chat-markdown h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 1.1rem;
+  margin-bottom: 0.4rem;
+  color: var(--color-neutral-800);
+}
+
+:is(.dark) .chat-markdown h4 {
+  color: var(--color-neutral-200);
+}
+
+.chat-markdown ul {
+  list-style-type: disc !important;
+  margin-top: 0.6rem;
+  margin-bottom: 0.9rem;
+  padding-left: 1.5rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.chat-markdown ol {
+  list-style-type: decimal !important;
+  margin-top: 0.6rem;
+  margin-bottom: 0.9rem;
+  padding-left: 1.5rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.chat-markdown li {
+  line-height: 1.65;
+  padding-left: 0.25rem;
+}
+
+.chat-markdown li::marker {
+  color: var(--color-primary);
+}
+
+.chat-markdown strong,
+.chat-markdown b {
+  font-weight: 700;
+  color: var(--color-neutral-950);
+}
+
+:is(.dark) .chat-markdown strong,
+:is(.dark) .chat-markdown b {
+  color: var(--color-neutral-50);
+}
+
+.chat-markdown hr {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+:is(.dark) .chat-markdown hr {
+  border-color: var(--color-neutral-800);
+}
+
+.chat-markdown blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding: 0.6rem 0 0.6rem 1rem;
+  margin: 1.1rem 0;
+  font-style: italic;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+:is(.dark) .chat-markdown blockquote {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chat-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85em;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-primary);
+}
+
+:is(.dark) .chat-markdown code {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.chat-markdown pre {
+  margin: 1.1rem 0;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-100);
+  overflow-x: auto;
+  border: 1px solid var(--color-neutral-800);
+}
+
+.chat-markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.85rem;
+}

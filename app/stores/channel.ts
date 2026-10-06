@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 
 interface ChannelData {
     id: string
+    handle?: string
     title: string
     description: string
     thumbnail: string
@@ -28,9 +29,18 @@ export const useChannelStore = defineStore('channel', () => {
     const channel = ref<ChannelData | null>(null)
     const videos = ref<VideoData[]>([])
     const loading = ref(false)
+    const loadingMore = ref(false)
+    const noMoreVideos = ref(false)
     const error = ref<string | null>(null)
     const insight = ref<string | null>(null)
     const insightLoading = ref(false)
+
+    const hasMoreVideos = computed(() => {
+        if (!channel.value || noMoreVideos.value) return false
+        if (videos.value.length >= 50) return false
+        if (channel.value.videoCount && videos.value.length >= channel.value.videoCount) return false
+        return true
+    })
 
     async function fetchInsight() {
         insightLoading.value = true
@@ -52,8 +62,12 @@ export const useChannelStore = defineStore('channel', () => {
     }
 
 
+    const BATCH_SIZE = 9
+
     async function search(handle: string) {
         loading.value = true
+        loadingMore.value = false
+        noMoreVideos.value = false
         error.value = null
         channel.value = null
         videos.value = []
@@ -65,15 +79,37 @@ export const useChannelStore = defineStore('channel', () => {
             channel.value = channelData
 
             const videosData = await $fetch<VideoData[]>('/api/videos', {
-                params: { channelId: channelData.id, maxResults: 50 }
+                params: { channelId: channelData.id, maxResults: BATCH_SIZE }
             })
             videos.value = videosData
+            if (videosData.length < BATCH_SIZE) {
+                noMoreVideos.value = true
+            }
         } catch (err: any) {
             error.value = err?.data?.statusMessage
                 || err?.statusMessage
                 || 'Error while searching'
         } finally {
             loading.value = false
+        }
+    }
+
+    async function loadMoreVideos() {
+        if (!channel.value || loadingMore.value || !hasMoreVideos.value) return
+        loadingMore.value = true
+        try {
+            const nextLimit = Math.min(videos.value.length + BATCH_SIZE, 50)
+            const videosData = await $fetch<VideoData[]>('/api/videos', {
+                params: { channelId: channel.value.id, maxResults: nextLimit }
+            })
+            if (videosData.length <= videos.value.length || videosData.length < nextLimit) {
+                noMoreVideos.value = true
+            }
+            videos.value = videosData
+        } catch (err) {
+            console.error('Error loading more videos:', err)
+        } finally {
+            loadingMore.value = false
         }
     }
 
@@ -85,7 +121,21 @@ export const useChannelStore = defineStore('channel', () => {
     })
 
 
-    return { channel, videos, loading, error, search, avgViews, insight, insightLoading, fetchInsight }
+    return {
+        channel,
+        videos,
+        loading,
+        loadingMore,
+        noMoreVideos,
+        hasMoreVideos,
+        error,
+        search,
+        loadMoreVideos,
+        avgViews,
+        insight,
+        insightLoading,
+        fetchInsight
+    }
 })
 
 

@@ -86,11 +86,13 @@ async function fetchQuota() {
   }
 }
 
-async function fetchSessions() {
+async function fetchSessions(skipAutoSelect = false) {
   loadingSessions.value = true
   try {
     const data = await $fetch<SessionItem[]>('/api/chat/sessions')
     sessions.value = data
+
+    if (skipAutoSelect) return
 
     // If no active session, auto-select the latest one or create new
     if (!activeSessionId.value && data.length > 0) {
@@ -121,11 +123,11 @@ async function selectSession(id: string) {
   }
 }
 
-async function createNewSession(initialPrompt?: string) {
+async function createNewSession(initialPrompt?: string, customTitle?: string) {
   try {
     const newSession = await $fetch<SessionItem>('/api/chat/sessions', {
       method: 'POST',
-      body: { title: 'New Strategy Session' }
+      body: { title: customTitle || 'New Strategy Session' }
     })
 
     sessions.value.unshift(newSession)
@@ -137,8 +139,7 @@ async function createNewSession(initialPrompt?: string) {
     }
 
     if (initialPrompt) {
-      inputMessage.value = initialPrompt
-      await sendMessage()
+      await sendMessage(initialPrompt)
     }
   } catch (err) {
     console.error('Error creating new session:', err)
@@ -203,10 +204,12 @@ async function sendMessage(promptOverride?: string) {
       }
     })
 
-    // Append real assistant message
-    if (activeSession.value) {
-      activeSession.value.messages.push(res.message)
+    // Stop thinking animation before starting the stream
+    if (thinkingTimer) {
+      clearInterval(thinkingTimer)
+      thinkingTimer = null
     }
+    sending.value = false
 
     // Update remaining quota
     if (quota.value) {
@@ -225,6 +228,9 @@ async function sendMessage(promptOverride?: string) {
       currentSession.title = text.slice(0, 40) + (text.length > 40 ? '...' : '')
       if (activeSession.value) activeSession.value.title = currentSession.title
     }
+
+    // Animate output starting from top of message and descending smoothly to the end
+    await streamAssistantMessage(res.message.content, res.message.id)
   } catch (err: any) {
     console.error('Error sending message:', err)
     const errorMsg = err?.data?.statusMessage || err?.statusMessage || 'Failed to generate response. Please try again.'
@@ -238,14 +244,68 @@ async function sendMessage(promptOverride?: string) {
         createdAt: new Date().toISOString()
       })
     }
+    scrollToBottom()
   } finally {
     if (thinkingTimer) {
       clearInterval(thinkingTimer)
       thinkingTimer = null
     }
     sending.value = false
-    scrollToBottom()
   }
+}
+
+async function streamAssistantMessage(fullContent: string, messageId: string) {
+  if (!activeSession.value) return
+
+  const assistantMsg: MessageItem = {
+    id: messageId,
+    sessionId: activeSessionId.value!,
+    role: 'assistant',
+    content: '',
+    createdAt: new Date().toISOString()
+  }
+
+  activeSession.value.messages.push(assistantMsg)
+
+  // Scroll so the beginning of this assistant message is in view
+  await nextTick()
+  if (messageContainer.value) {
+    const items = messageContainer.value.querySelectorAll('.message-item')
+    const lastItem = items[items.length - 1] as HTMLElement | undefined
+    if (lastItem) {
+      lastItem.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  return new Promise<void>((resolve) => {
+    let currentLength = 0
+    const totalLength = fullContent.length
+    const chunkSize = Math.max(6, Math.ceil(totalLength / 90))
+    const intervalMs = 25
+
+    const intervalId = setInterval(() => {
+      currentLength += chunkSize
+      if (currentLength >= totalLength) {
+        assistantMsg.content = fullContent
+        clearInterval(intervalId)
+        if (messageContainer.value) {
+          messageContainer.value.scrollTo({
+            top: messageContainer.value.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+        resolve()
+      } else {
+        assistantMsg.content = fullContent.slice(0, currentLength)
+        if (messageContainer.value) {
+          messageContainer.value.scrollTo({
+            top: messageContainer.value.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+      }
+    }, intervalMs)
+  })
 }
 
 function handleKeydown(e: KeyboardEvent) {
@@ -267,8 +327,21 @@ function copyMessage(content: string) {
   navigator.clipboard.writeText(content)
 }
 
+const route = useRoute()
+const router = useRouter()
+
 onMounted(async () => {
-  await Promise.all([fetchSessions(), fetchQuota()])
+  const incomingPrompt = route.query.prompt ? String(route.query.prompt) : null
+  const incomingTitle = route.query.channelTitle ? `Strategy: ${route.query.channelTitle}` : 'Channel Strategy Blueprint'
+
+  if (incomingPrompt) {
+    // Clear query parameter from the URL to avoid resubmitting on page refresh
+    router.replace({ query: {} })
+    await Promise.all([fetchSessions(true), fetchQuota()])
+    await createNewSession(incomingPrompt, incomingTitle)
+  } else {
+    await Promise.all([fetchSessions(false), fetchQuota()])
+  }
 })
 </script>
 
@@ -448,10 +521,9 @@ onMounted(async () => {
           <div
             v-for="msg in activeSession?.messages"
             :key="msg.id"
-            class="flex gap-3"
+            class="flex gap-3 message-item"
             :class="msg.role === 'user' ? 'justify-end' : 'justify-start'"
           >
-
             <!-- Message Body -->
             <div
               class="max-w-[85%] sm:max-w-[75%] text-sm space-y-2 ml-6"
@@ -474,17 +546,13 @@ onMounted(async () => {
               <!-- Content with HTML/Markdown rendering -->
               <div
                 v-if="msg.role === 'assistant'"
-                class="prose prose-sm dark:prose-invert max-w-none text-neutral-800 dark:text-neutral-200 leading-relaxed"
+                class="chat-markdown"
                 v-html="renderMarkdown(msg.content)"
               />
               <p v-else class="whitespace-pre-wrap leading-relaxed">
                 {{ msg.content }}
               </p>
-
-
             </div>
-
-
           </div>
 
           <!-- Claude-Style Inline Typing Indicator -->

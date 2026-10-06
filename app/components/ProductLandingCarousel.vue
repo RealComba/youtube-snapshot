@@ -99,9 +99,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto py-4 sm:py-6 px-4 space-y-4 sm:space-y-5 min-h-[calc(100vh-2rem)] flex flex-col justify-center">
+  <div class="max-w-5xl mx-auto py-4 sm:py-6 px-4 space-y-4 sm:space-y-5 min-h-[calc(100vh-2rem)] flex flex-col justify-center gap-3">
     <!-- Top Hero Section (Compact Single-Screen Style) -->
-    <div class="text-center space-y-3 max-w-3xl mx-auto">
+    <div class="text-center space-y-3 max-w-3xl mx-auto mt-10 flex flex-col items-center justify-center gap-1">
       <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
         Connect your
         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-500 border border-red-500/20 align-middle">

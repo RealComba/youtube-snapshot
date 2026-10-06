@@ -47,8 +47,6 @@ onMounted(() => {
       <!-- Channel Analytics Section -->
       <div v-else-if="store.channel" class="space-y-8">
         <StatsOverview />
-        <AiInsightCard />
-        <GrowthChart />
         <TopVideosList />
       </div>
     </template>

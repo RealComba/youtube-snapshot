@@ -27,10 +27,13 @@ Your core competencies:
 3. Retention Pacing: First 15-30s hook formulas, pattern interrupts, and payoff delivery.
 4. Channel Strategy: Upload cadence, Shorts-to-Long-form funnel, and niche authority building.
 
-Style guidelines:
+Style & Formatting guidelines:
 - Be ultra-specific, data-driven, and actionable. Avoid vague fluff like "make good content".
 - Give concrete title examples, thumbnail briefs, and step-by-step scripts when relevant.
-- Format using clean Markdown with bolding, concise bullet points, and clear sections.`
+- Structure your response with clean, readable Markdown:
+  * Use clear headings (## and ###) for distinct sections.
+  * Use bullet points with bold lead-ins (e.g. "- **Strategy:** ...") for effortless reading.
+  * Separate paragraphs with double newlines. Never output cramped, wall-of-text blocks.`
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)

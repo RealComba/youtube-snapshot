@@ -264,11 +264,14 @@ const filterOptions = [
       <div
         v-for="video in filteredVideos"
         :key="video.id"
-        class="cursor-pointer"
+        class="cursor-pointer h-full"
         @click="openVideo(video)"
       >
-        <UCard class="overflow-hidden hover:ring-2 hover:ring-primary transition-all">
-          <div class="relative">
+        <UCard
+          class="h-full flex flex-col overflow-hidden hover:ring-2 hover:ring-primary transition-all"
+          :ui="{ body: 'flex flex-col flex-1 p-4' }"
+        >
+          <div class="relative shrink-0">
             <img :src="video.thumbnail" :alt="video.title" class="w-full aspect-video object-cover rounded-md">
             <UBadge :label="formatDuration(video.durationSeconds)" color="neutral" variant="solid"
               class="absolute bottom-2 right-2" />
@@ -283,14 +286,14 @@ const filterOptions = [
             </div>
           </div>
 
-          <h4 class="font-medium mt-3 line-clamp-2">
+          <h4 class="font-medium mt-3 line-clamp-2 h-10 leading-snug">
             {{ video.title }}
           </h4>
           <p class="text-xs text-muted mt-1">
             {{ formatDate(video.publishedAt) }}
           </p>
 
-          <div class="flex items-center gap-3 mt-3 text-sm text-muted">
+          <div class="flex items-center gap-3 mt-3 mb-4 text-sm text-muted">
             <span class="flex items-center gap-1">
               <UIcon name="i-lucide-eye" class="size-4" />
               {{ formatNumber(video.viewCount) }}
@@ -306,7 +309,7 @@ const filterOptions = [
           </div>
 
           <!-- Card Footer with SEO Health Semaphore & ER -->
-          <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-neutral-100 dark:border-neutral-800 text-xs">
+          <div class="flex items-center justify-between mt-auto pt-3.5 border-t border-neutral-100 dark:border-neutral-800 text-xs">
             <div
               class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border"
               :class="getSeoHealth(video).badgeClass"
@@ -322,6 +325,26 @@ const filterOptions = [
           </div>
         </UCard>
       </div>
+    </div>
+
+    <!-- Load More Button (10 videos at a time) -->
+    <div v-if="filteredVideos.length > 0 && store.hasMoreVideos" class="flex flex-col items-center justify-center pt-8 pb-4">
+      <UButton
+        label="Load More Videos"
+        icon="i-lucide-plus"
+        color="neutral"
+        variant="subtle"
+        size="md"
+        :loading="store.loadingMore"
+        class="font-medium cursor-pointer"
+        @click="store.loadMoreVideos()"
+      />
+      <p class="text-xs text-muted mt-2">
+        Showing {{ store.videos.length }} of {{ store.channel?.videoCount || store.videos.length }} uploads
+      </p>
+    </div>
+    <div v-else-if="filteredVideos.length > 0 && store.videos.length >= 50" class="text-center pt-6 pb-2 text-xs text-muted">
+      Showing maximum 50 recent uploads
     </div>
 
     <p v-if="filteredVideos.length === 0" class="text-sm text-muted text-center py-8">
