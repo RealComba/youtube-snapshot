@@ -1,15 +1,28 @@
 <script setup lang="ts">
 const store = useChannelStore()
-const { loggedIn, user } = useUserSession()
+const { loggedIn } = useUserSession()
 </script>
 
 <template>
   <div>
-    <div v-if="loggedIn" class="py-8 px-4 sm:px-6 max-w-6xl mx-auto space-y-8">
+    <div
+      v-if="loggedIn"
+      class="py-8 px-4 sm:px-6 max-w-6xl mx-auto space-y-8"
+    >
       <div :class="[!store.channel && !store.loading ? 'flex flex-col items-center text-center mt-12 mb-16' : 'space-y-4']">
         <div>
-          <h1 class="font-bold tracking-tight transition-all" :class="[!store.channel && !store.loading ? 'text-4xl' : 'text-2xl']">Channel Analyzer</h1>
-          <p class="text-muted transition-all mt-2" :class="[!store.channel && !store.loading ? 'text-base max-w-md mx-auto' : 'text-sm']">Inspect any creator, competitor, or paste a YouTube URL to view in-depth performance.</p>
+          <h1
+            class="font-bold tracking-tight transition-all"
+            :class="[!store.channel && !store.loading ? 'text-4xl' : 'text-2xl']"
+          >
+            Channel Analyzer
+          </h1>
+          <p
+            class="text-muted transition-all mt-2"
+            :class="[!store.channel && !store.loading ? 'text-base max-w-md mx-auto' : 'text-sm']"
+          >
+            Inspect any creator, competitor, or paste a YouTube URL to view in-depth performance.
+          </p>
         </div>
 
         <div :class="[!store.channel && !store.loading ? 'max-w-2xl w-full mx-auto mt-8 space-y-3' : 'max-w-xl space-y-2']">
@@ -22,7 +35,10 @@ const { loggedIn, user } = useUserSession()
             :class="[!store.channel ? 'justify-center' : 'justify-start']"
           >
             <span class="text-xs text-muted font-medium flex items-center gap-1">
-              <UIcon name="i-lucide-history" class="size-3.5" />
+              <UIcon
+                name="i-lucide-history"
+                class="size-3.5"
+              />
               Recent:
             </span>
             <button
@@ -35,7 +51,12 @@ const { loggedIn, user } = useUserSession()
                 : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600'"
               @click="store.search(recent.handle || recent.id)"
             >
-              <UAvatar :src="recent.thumbnail" :alt="recent.title" size="xs" class="size-4 shrink-0 rounded-full" />
+              <UAvatar
+                :src="recent.thumbnail"
+                :alt="recent.title"
+                size="xs"
+                class="size-4 shrink-0 rounded-full"
+              />
               <span class="truncate max-w-[120px]">{{ recent.handle || recent.title }}</span>
             </button>
             <button
@@ -50,16 +71,31 @@ const { loggedIn, user } = useUserSession()
         </div>
       </div>
 
-      <UAlert v-if="store.error" color="error" icon="i-lucide-alert-circle" :title="store.error" />
+      <UAlert
+        v-if="store.error"
+        color="error"
+        icon="i-lucide-alert-circle"
+        :title="store.error"
+      />
 
-      <div v-if="store.loading" class="space-y-6">
+      <div
+        v-if="store.loading"
+        class="space-y-6"
+      >
         <USkeleton class="h-40 w-full rounded-lg" />
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <USkeleton v-for="i in 6" :key="i" class="h-64 rounded-lg" />
+          <USkeleton
+            v-for="i in 6"
+            :key="i"
+            class="h-64 rounded-lg"
+          />
         </div>
       </div>
 
-      <div v-if="!store.loading && store.channel" class="space-y-8">
+      <div
+        v-if="!store.loading && store.channel"
+        class="space-y-8"
+      >
         <StatsOverview />
         <TopVideosList />
       </div>

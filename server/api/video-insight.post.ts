@@ -143,7 +143,7 @@ export default defineEventHandler(async (event) => {
     if (!cached.tabs) {
       cached.tabs = {
         titleHook: { analysis: cached.diagnosis || '', alternativeTitles: [], score: 75 },
-        seoAlgorithm: { analysis: 'Algorithmic assessment completed.', seoScore: 75, descriptionSuggestion: "Check out this amazing video!", recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Browse Features' },
+        seoAlgorithm: { analysis: 'Algorithmic assessment completed.', seoScore: 75, descriptionSuggestion: 'Check out this amazing video!', recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Browse Features' },
         contentReview: { analysis: cached.diagnosis || '', hookScore: 75, strengths: [], retentionLeaks: [], nextAction: 'Deepen winning topics.' },
         overallSummary: cached.diagnosis || ''
       }
@@ -170,7 +170,7 @@ export default defineEventHandler(async (event) => {
     `Channel: ${payload.channelTitle || 'Unknown Creator'}`,
     `Channel Average Views per Upload: ${channelAvg.toLocaleString()}`,
     `Video Title: "${payload.title}"`,
-    `Video Description: "${(payload.description || "").slice(0, 500)}..."`,
+    `Video Description: "${(payload.description || '').slice(0, 500)}..."`,
     `Format: ${payload.isShort ? 'Shorts' : 'Long-form'} (${payload.durationSeconds}s)`,
     `Published Date: ${payload.publishedAt}`,
     `Views: ${payload.viewCount.toLocaleString()} (${multiplier}x channel benchmark)`,
@@ -222,7 +222,7 @@ export default defineEventHandler(async (event) => {
     } else if (jsonText.startsWith('```')) {
       jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '')
     }
-    
+
     let parsedTabs: VideoInsightTabs
     try {
       parsedTabs = JSON.parse(jsonText)
@@ -261,7 +261,7 @@ export default defineEventHandler(async (event) => {
     } catch {
       parsedTabs = {
         titleHook: { analysis: text, alternativeTitles: [], score: 75 },
-        seoAlgorithm: { analysis: 'Algorithmic breakdown generated.', seoScore: 75, descriptionSuggestion: "Check out this amazing video!", recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Algorithmic' },
+        seoAlgorithm: { analysis: 'Algorithmic breakdown generated.', seoScore: 75, descriptionSuggestion: 'Check out this amazing video!', recommendedHashtags: [], suggestedKeywords: [], checklist: [], searchBrowseFit: 'Algorithmic' },
         contentReview: { analysis: text, hookScore: 75, strengths: [], retentionLeaks: [], nextAction: 'Iterate on top performing concept.' },
         overallSummary: text.slice(0, 200)
       }

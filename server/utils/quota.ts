@@ -30,24 +30,24 @@ function secondsUntilMidnightPT(): number {
     hour12: false
   }).formatToParts(new Date())
 
-  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0)
+  const get = (type: string) => Number(parts.find(p => p.type === type)?.value ?? 0)
   const secondsSinceMidnight = get('hour') * 3600 + get('minute') * 60 + get('second')
- 
+
   return 24 * 3600 - secondsSinceMidnight
 }
 
 export async function checkAndConsumeQuota(cost: number): Promise<QuotaResult> {
   const redis = useRedis()
   const key = `yt:quota:${currentDatePT()}`
- 
+
   const newTotal = await redis.incrby(key, cost)
- 
+
   await redis.expire(key, secondsUntilMidnightPT())
- 
+
   if (newTotal > DAILY_QUOTA_LIMIT) {
-    await redis.decrby(key, cost) 
+    await redis.decrby(key, cost)
     return { allowed: false, remaining: Math.max(0, DAILY_QUOTA_LIMIT - (newTotal - cost)) }
   }
- 
+
   return { allowed: true, remaining: DAILY_QUOTA_LIMIT - newTotal }
 }

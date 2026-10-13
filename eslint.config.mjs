@@ -14,6 +14,12 @@ export default withNuxt(
           ['^v-bind:ui$', [{ match: 'objectValues' }]]
         ]
       }
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'better-tailwindcss/no-unknown-classes': 'off',
+      'vue/no-v-html': 'off',
+      'no-empty': 'warn'
     }
   }
 )

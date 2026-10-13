@@ -56,7 +56,10 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
 </script>
 
 <template>
-  <UCard v-if="activeChannel" class="overflow-hidden">
+  <UCard
+    v-if="activeChannel"
+    class="overflow-hidden"
+  >
     <!-- Channel Header & Actions -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-neutral-100 dark:border-neutral-800">
       <div class="flex items-start sm:items-center gap-4 min-w-0">
@@ -122,7 +125,10 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs font-medium text-muted uppercase tracking-wider">Subscribers</span>
           <div class="p-1.5 rounded-lg bg-red-500/10 text-red-500">
-            <UIcon name="i-lucide-users" class="size-4" />
+            <UIcon
+              name="i-lucide-users"
+              class="size-4"
+            />
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
@@ -136,7 +142,10 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs font-medium text-muted uppercase tracking-wider">Total Views</span>
           <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
-            <UIcon name="i-lucide-eye" class="size-4" />
+            <UIcon
+              name="i-lucide-eye"
+              class="size-4"
+            />
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
@@ -150,7 +159,10 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs font-medium text-muted uppercase tracking-wider">Videos</span>
           <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
-            <UIcon name="i-lucide-video" class="size-4" />
+            <UIcon
+              name="i-lucide-video"
+              class="size-4"
+            />
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
@@ -164,7 +176,10 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs font-medium text-muted uppercase tracking-wider">Avg Views</span>
           <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
-            <UIcon name="i-lucide-trending-up" class="size-4" />
+            <UIcon
+              name="i-lucide-trending-up"
+              class="size-4"
+            />
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">

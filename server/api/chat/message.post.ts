@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 4. Save user message to database
-  const userMessage = await prisma.chatMessage.create({
+  await prisma.chatMessage.create({
     data: {
       sessionId: session.id,
       role: 'user',
@@ -128,7 +128,7 @@ Tailor recommendations specifically to this creator's scale and niche whenever r
   const systemInstruction = BASE_SYSTEM_PROMPT + channelContext
 
   // 7. Format conversation for Gemini
-  const contents = pastMessages.map((msg) => ({
+  const contents = pastMessages.map(msg => ({
     role: msg.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: msg.content }]
   }))
@@ -153,32 +153,31 @@ Tailor recommendations specifically to this creator's scale and niche whenever r
             maxOutputTokens: 4096
           },
           safetySettings: [
-            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
           ]
         }
       }
     )
     const assistantText = response.candidates?.[0]?.content?.parts
-      ?.map((p) => p.text ?? '')
+      ?.map(p => p.text ?? '')
       .join('')
       .trim()
 
     if (!assistantText) {
       console.error('Gemini API Error Response:', JSON.stringify(response, null, 2))
       const finishReason = response.candidates?.[0]?.finishReason
-      const errorMessage = finishReason === 'SAFETY' 
-        ? 'Response blocked by AI safety filters.' 
+      const errorMessage = finishReason === 'SAFETY'
+        ? 'Response blocked by AI safety filters.'
         : `Empty response received from AI model. (Finish reason: ${finishReason || 'unknown'})`
-        
+
       throw createError({
         statusCode: 502,
         statusMessage: errorMessage
       })
     }
-
 
     // 8. Save assistant message to database
     const assistantMessage = await prisma.chatMessage.create({

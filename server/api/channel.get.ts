@@ -40,9 +40,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
+  const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
   const rateLimit = await checkRateLimit(clientIdentifier)
- 
+
   if (!rateLimit.allowed) {
     throw createError({
       statusCode: 429,
@@ -114,9 +114,9 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
 
     await redis.set(cacheKey, payload, { ex: CACHE_TTL_SECONDS })
 
-     try {
+    try {
       const prisma = usePrisma()
- 
+
       await prisma.channel.upsert({
         where: { id: payload.id },
         create: {
@@ -131,7 +131,7 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
           thumbnail: payload.thumbnail
         }
       })
- 
+
       await prisma.channelSnapshot.create({
         data: {
           channelId: payload.id,

@@ -223,11 +223,17 @@ onMounted(() => {
       <div class="space-y-1.5">
         <div class="flex items-center gap-2 flex-wrap">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-            <UIcon name="i-lucide-radar" class="size-3.5" />
+            <UIcon
+              name="i-lucide-radar"
+              class="size-3.5"
+            />
             <span>Niche & Viral Radar</span>
           </div>
           <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <UIcon name="i-lucide-database" class="size-3" />
+            <UIcon
+              name="i-lucide-database"
+              class="size-3"
+            />
             <span>System Redis (24h Cache • 0 Quota)</span>
           </div>
         </div>
@@ -271,7 +277,10 @@ onMounted(() => {
           : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600'"
         @click="selectedCategory = cat.id"
       >
-        <UIcon :name="cat.icon" class="size-3.5" />
+        <UIcon
+          :name="cat.icon"
+          class="size-3.5"
+        />
         <span>{{ cat.label }}</span>
       </button>
     </div>
@@ -303,7 +312,10 @@ onMounted(() => {
               : 'text-muted hover:text-neutral-900 dark:hover:text-white'"
             @click="selectedType = 'videos'"
           >
-            <UIcon name="i-lucide-play-square" class="size-3.5" />
+            <UIcon
+              name="i-lucide-play-square"
+              class="size-3.5"
+            />
             <span>Videos</span>
             <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300">
               {{ longVideosCount }}
@@ -318,7 +330,10 @@ onMounted(() => {
               : 'text-muted hover:text-neutral-900 dark:hover:text-white'"
             @click="selectedType = 'shorts'"
           >
-            <UIcon name="i-lucide-zap" class="size-3.5 text-red-500" />
+            <UIcon
+              name="i-lucide-zap"
+              class="size-3.5 text-red-500"
+            />
             <span>Shorts</span>
             <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-red-500/15 text-red-600 dark:text-red-400 font-bold">
               {{ shortsCount }}
@@ -350,7 +365,10 @@ onMounted(() => {
       </div>
 
       <!-- Quick Summary Stats Bar -->
-      <div v-if="!loading && filteredVideos.length > 0" class="pt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between flex-wrap gap-3 text-xs text-muted">
+      <div
+        v-if="!loading && filteredVideos.length > 0"
+        class="pt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between flex-wrap gap-3 text-xs text-muted"
+      >
         <div class="flex items-center gap-4 flex-wrap">
           <span>Showing <strong class="text-neutral-900 dark:text-white">{{ filteredVideos.length }}</strong> of {{ totalCount }} items</span>
           <span>•</span>
@@ -360,18 +378,33 @@ onMounted(() => {
         </div>
 
         <div class="text-[11px] text-muted flex items-center gap-1">
-          <UIcon name="i-lucide-info" class="size-3.5" />
+          <UIcon
+            name="i-lucide-info"
+            class="size-3.5"
+          />
           <span>Click "Analyze" to inspect creator in Channel Analyzer</span>
         </div>
       </div>
     </div>
 
     <!-- Error Alert -->
-    <UAlert v-if="error" color="error" icon="i-lucide-alert-circle" :title="error" />
+    <UAlert
+      v-if="error"
+      color="error"
+      icon="i-lucide-alert-circle"
+      :title="error"
+    />
 
     <!-- Loading Skeleton Grid -->
-    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      <div v-for="i in 6" :key="i" class="space-y-3 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+    <div
+      v-if="loading"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+    >
+      <div
+        v-for="i in 6"
+        :key="i"
+        class="space-y-3 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900"
+      >
         <USkeleton class="aspect-video w-full rounded-lg" />
         <USkeleton class="h-4 w-3/4 rounded" />
         <USkeleton class="h-3 w-1/2 rounded" />
@@ -383,7 +416,10 @@ onMounted(() => {
     </div>
 
     <!-- Video Grid -->
-    <div v-else-if="filteredVideos.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div
+      v-else-if="filteredVideos.length > 0"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+    >
       <UCard
         v-for="video in filteredVideos"
         :key="video.id"
@@ -392,7 +428,12 @@ onMounted(() => {
       >
         <!-- Thumbnail Container -->
         <div class="relative shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
-          <a :href="`https://www.youtube.com/watch?v=${video.id}`" target="_blank" rel="noopener" class="block aspect-video">
+          <a
+            :href="`https://www.youtube.com/watch?v=${video.id}`"
+            target="_blank"
+            rel="noopener"
+            class="block aspect-video"
+          >
             <img
               :src="video.thumbnail"
               :alt="video.title"
@@ -406,7 +447,10 @@ onMounted(() => {
             v-if="video.isShort"
             class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-red-600 text-white shadow-xs"
           >
-            <UIcon name="i-lucide-zap" class="size-3" />
+            <UIcon
+              name="i-lucide-zap"
+              class="size-3"
+            />
             <span>SHORT</span>
           </div>
 
@@ -452,15 +496,24 @@ onMounted(() => {
         <!-- Metrics Row -->
         <div class="flex items-center gap-3.5 mt-3 mb-4 text-xs text-muted">
           <span class="flex items-center gap-1 font-medium text-neutral-800 dark:text-neutral-200">
-            <UIcon name="i-lucide-eye" class="size-3.5 text-neutral-400" />
+            <UIcon
+              name="i-lucide-eye"
+              class="size-3.5 text-neutral-400"
+            />
             {{ formatNumber(video.viewCount) }}
           </span>
           <span class="flex items-center gap-1">
-            <UIcon name="i-lucide-thumbs-up" class="size-3.5 text-neutral-400" />
+            <UIcon
+              name="i-lucide-thumbs-up"
+              class="size-3.5 text-neutral-400"
+            />
             {{ formatNumber(video.likeCount) }}
           </span>
           <span class="flex items-center gap-1">
-            <UIcon name="i-lucide-message-circle" class="size-3.5 text-neutral-400" />
+            <UIcon
+              name="i-lucide-message-circle"
+              class="size-3.5 text-neutral-400"
+            />
             {{ formatNumber(video.commentCount) }}
           </span>
         </div>
@@ -486,7 +539,10 @@ onMounted(() => {
               title="Break down why this is viral in AI Chat"
               @click="analyzeWithAi(video)"
             >
-              <UIcon name="i-lucide-sparkles" class="size-4" />
+              <UIcon
+                name="i-lucide-sparkles"
+                class="size-4"
+              />
             </button>
 
             <!-- Link: Open on YouTube -->
@@ -497,7 +553,10 @@ onMounted(() => {
               class="p-1.5 rounded-md text-neutral-500 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               title="Watch on YouTube"
             >
-              <UIcon name="i-lucide-external-link" class="size-4" />
+              <UIcon
+                name="i-lucide-external-link"
+                class="size-4"
+              />
             </a>
           </div>
         </div>
@@ -510,9 +569,14 @@ onMounted(() => {
       class="text-center py-16 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl space-y-3"
     >
       <div class="size-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto text-muted">
-        <UIcon name="i-lucide-search-x" class="size-6" />
+        <UIcon
+          name="i-lucide-search-x"
+          class="size-6"
+        />
       </div>
-      <h3 class="text-base font-bold">No videos match your criteria</h3>
+      <h3 class="text-base font-bold">
+        No videos match your criteria
+      </h3>
       <p class="text-xs text-muted max-w-sm mx-auto">
         Try clearing your search query or switching to another category or content type.
       </p>

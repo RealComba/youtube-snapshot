@@ -78,10 +78,15 @@ async function selectCreator(handle: string) {
   <div class="mt-12 space-y-6">
     <div class="text-center space-y-2">
       <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-        <UIcon name="i-lucide-flame" class="size-3.5" />
+        <UIcon
+          name="i-lucide-flame"
+          class="size-3.5"
+        />
         Explore High-Performing Niches
       </div>
-      <h2 class="text-xl font-bold">Trending Creators & Benchmark Channels</h2>
+      <h2 class="text-xl font-bold">
+        Trending Creators & Benchmark Channels
+      </h2>
       <p class="text-sm text-muted max-w-lg mx-auto">
         Click any channel to immediately analyze their audience velocity, Shorts vs long-form ratio, and AI diagnosis.
       </p>
@@ -108,7 +113,7 @@ async function selectCreator(handle: string) {
         class="cursor-pointer group"
         @click="selectCreator(creator.handle)"
       >
-        <UCard class="h-full transition-all group-hover:border-primary/50 group-hover:shadow-md" >
+        <UCard class="h-full transition-all group-hover:border-primary/50 group-hover:shadow-md">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-center gap-3">
               <UAvatar
@@ -122,8 +127,16 @@ async function selectCreator(handle: string) {
                   {{ creator.name }}
                 </h3>
                 <div class="flex items-center gap-2 mt-0.5">
-                  <p class="text-xs text-muted">{{ creator.handle }}</p>
-                  <UBadge :label="creator.niche" color="neutral" variant="soft" size="xs" class="text-[9px] px-1.5 py-0" />
+                  <p class="text-xs text-muted">
+                    {{ creator.handle }}
+                  </p>
+                  <UBadge
+                    :label="creator.niche"
+                    color="neutral"
+                    variant="soft"
+                    size="xs"
+                    class="text-[9px] px-1.5 py-0"
+                  />
                 </div>
               </div>
             </div>
@@ -137,7 +150,10 @@ async function selectCreator(handle: string) {
             <span class="font-semibold text-primary">{{ creator.subs }} subs</span>
             <span class="text-muted flex items-center gap-1 group-hover:text-primary transition-colors">
               Analyze Channel
-              <UIcon name="i-lucide-arrow-right" class="size-3 group-hover:translate-x-0.5 transition-transform" />
+              <UIcon
+                name="i-lucide-arrow-right"
+                class="size-3 group-hover:translate-x-0.5 transition-transform"
+              />
             </span>
           </div>
         </UCard>

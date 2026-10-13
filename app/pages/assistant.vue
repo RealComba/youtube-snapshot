@@ -216,7 +216,7 @@ async function sendMessage(promptOverride?: string) {
       quota.value.remaining = res.remainingQuota
       quota.value.totalUsed = quota.value.limit - res.remainingQuota
     }
-    
+
     // Notify global listeners (e.g. sidebar)
     if (import.meta.client) {
       window.dispatchEvent(new Event('quota-updated'))
@@ -359,7 +359,10 @@ onMounted(async () => {
           class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary/10 hover:bg-primary/15 text-primary text-xs font-bold transition-all cursor-pointer"
           @click="createNewSession()"
         >
-          <UIcon name="i-lucide-plus" class="size-4" />
+          <UIcon
+            name="i-lucide-plus"
+            class="size-4"
+          />
           <span>New Session</span>
         </button>
 
@@ -368,17 +371,30 @@ onMounted(async () => {
           class="p-2 rounded-lg text-muted hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 md:hidden cursor-pointer"
           @click="sidebarOpen = false"
         >
-          <UIcon name="i-lucide-x" class="size-4" />
+          <UIcon
+            name="i-lucide-x"
+            class="size-4"
+          />
         </button>
       </div>
 
       <!-- Sessions List -->
       <div class="flex-1 overflow-y-auto p-2 space-y-1">
-        <div v-if="loadingSessions" class="space-y-2 p-2">
-          <USkeleton v-for="i in 5" :key="i" class="h-10 rounded-lg w-full" />
+        <div
+          v-if="loadingSessions"
+          class="space-y-2 p-2"
+        >
+          <USkeleton
+            v-for="i in 5"
+            :key="i"
+            class="h-10 rounded-lg w-full"
+          />
         </div>
 
-        <div v-else-if="sessions.length === 0" class="p-4 text-center text-xs text-muted">
+        <div
+          v-else-if="sessions.length === 0"
+          class="p-4 text-center text-xs text-muted"
+        >
           No previous sessions yet.
         </div>
 
@@ -396,7 +412,10 @@ onMounted(async () => {
           @keydown.enter="selectSession(s.id)"
         >
           <div class="flex items-center gap-2 min-w-0 flex-1">
-            <UIcon name="i-lucide-message-square" class="size-3.5 shrink-0 text-primary" />
+            <UIcon
+              name="i-lucide-message-square"
+              class="size-3.5 shrink-0 text-primary"
+            />
             <span class="truncate">{{ s.title }}</span>
           </div>
 
@@ -406,7 +425,10 @@ onMounted(async () => {
             title="Delete session"
             @click.stop="deleteSession(s.id, $event)"
           >
-            <UIcon name="i-lucide-trash-2" class="size-3" />
+            <UIcon
+              name="i-lucide-trash-2"
+              class="size-3"
+            />
           </button>
         </div>
       </div>
@@ -416,7 +438,10 @@ onMounted(async () => {
         <div class="p-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 space-y-2">
           <div class="flex items-center justify-between text-[11px]">
             <span class="font-bold flex items-center gap-1.5 text-neutral-800 dark:text-neutral-200">
-              <UIcon name="i-lucide-sparkles" class="size-3.5 text-primary" />
+              <UIcon
+                name="i-lucide-sparkles"
+                class="size-3.5 text-primary"
+              />
               Daily AI Credits
             </span>
             <span class="font-mono font-bold text-primary">
@@ -449,7 +474,10 @@ onMounted(async () => {
             title="Toggle Sessions"
             @click="sidebarOpen = !sidebarOpen"
           >
-            <UIcon name="i-lucide-panel-left" class="size-4" />
+            <UIcon
+              name="i-lucide-panel-left"
+              class="size-4"
+            />
           </button>
 
           <div class="min-w-0">
@@ -462,9 +490,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          
-        </div>
+        <div class="flex items-center gap-2" />
       </header>
 
       <!-- Messages Thread -->
@@ -479,7 +505,10 @@ onMounted(async () => {
         >
           <div class="space-y-3">
             <div class="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-xs">
-              <UIcon name="i-lucide-sparkles" class="size-6" />
+              <UIcon
+                name="i-lucide-sparkles"
+                class="size-6"
+              />
             </div>
             <h3 class="text-2xl font-extrabold tracking-tight">
               YouTube Strategy & Growth Assistant
@@ -499,7 +528,10 @@ onMounted(async () => {
               @click="sendMessage(chip.prompt)"
             >
               <div class="flex items-center gap-2 font-bold text-xs group-hover:text-primary transition-colors">
-                <UIcon :name="chip.icon" class="size-3.5 text-primary" />
+                <UIcon
+                  :name="chip.icon"
+                  class="size-3.5 text-primary"
+                />
                 <span>{{ chip.title }}</span>
               </div>
               <p class="text-[11px] text-muted line-clamp-2 leading-relaxed">
@@ -510,7 +542,10 @@ onMounted(async () => {
         </div>
 
         <!-- Skeleton during loading -->
-        <div v-else-if="loadingMessages" class="space-y-4">
+        <div
+          v-else-if="loadingMessages"
+          class="space-y-4"
+        >
           <USkeleton class="h-20 w-3/4 rounded-xl" />
           <USkeleton class="h-28 w-5/6 rounded-xl ml-auto" />
           <USkeleton class="h-24 w-2/3 rounded-xl" />
@@ -532,13 +567,19 @@ onMounted(async () => {
                 : 'bg-transparent text-neutral-800 dark:text-neutral-200 mt-0.5 pb-2 fade-in-slow'"
             >
               <!-- Message Header on Assistant -->
-              <div v-if="msg.role === 'assistant'" class="flex items-center justify-between gap-4 pb-2">
+              <div
+                v-if="msg.role === 'assistant'"
+                class="flex items-center justify-between gap-4 pb-2"
+              >
                 <button
                   type="button"
                   class="text-[10px] text-muted hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
                   @click="copyMessage(msg.content)"
                 >
-                  <UIcon name="i-lucide-copy" class="size-3" />
+                  <UIcon
+                    name="i-lucide-copy"
+                    class="size-3"
+                  />
                   <span>Copy</span>
                 </button>
               </div>
@@ -549,34 +590,49 @@ onMounted(async () => {
                 class="chat-markdown"
                 v-html="renderMarkdown(msg.content)"
               />
-              <p v-else class="whitespace-pre-wrap leading-relaxed">
+              <p
+                v-else
+                class="whitespace-pre-wrap leading-relaxed"
+              >
                 {{ msg.content }}
               </p>
             </div>
           </div>
 
           <!-- Claude-Style Inline Typing Indicator -->
-          <div v-if="sending" class="flex gap-4 items-start transition-all duration-300">
-            
+          <div
+            v-if="sending"
+            class="flex gap-4 items-start transition-all duration-300"
+          >
             <div class="flex flex-col min-w-0 mt-0.5">
-               
-               <div class="flex flex-col mt-1 gap-1">
-                 <div class="flex items-center gap-3 h-5">
-                    <div class="flex space-x-1.5 items-center opacity-60">
-                      <div class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce" style="animation-duration: 0.8s; animation-delay: 0s"></div>
-                      <div class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce" style="animation-duration: 0.8s; animation-delay: 0.15s"></div>
-                      <div class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce" style="animation-duration: 0.8s; animation-delay: 0.3s"></div>
-                    </div>
-                                     <span class="text-[12px] text-muted">{{ thinkingSeconds }}s</span>
+              <div class="flex flex-col mt-1 gap-1">
+                <div class="flex items-center gap-3 h-5">
+                  <div class="flex space-x-1.5 items-center opacity-60">
+                    <div
+                      class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce"
+                      style="animation-duration: 0.8s; animation-delay: 0s"
+                    />
+                    <div
+                      class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce"
+                      style="animation-duration: 0.8s; animation-delay: 0.15s"
+                    />
+                    <div
+                      class="size-1.5 bg-neutral-600 dark:bg-neutral-400 rounded-full animate-bounce"
+                      style="animation-duration: 0.8s; animation-delay: 0.3s"
+                    />
+                  </div>
+                  <span class="text-[12px] text-muted">{{ thinkingSeconds }}s</span>
 
-                    
-                    <Transition name="fade">
-                      <span v-if="thinkingSeconds >= 3" class="text-xs text-muted font-medium italic">
-                        {{ thinkingPhrase }}
-                      </span>
-                    </Transition>
-                 </div>
-               </div>
+                  <Transition name="fade">
+                    <span
+                      v-if="thinkingSeconds >= 3"
+                      class="text-xs text-muted font-medium italic"
+                    >
+                      {{ thinkingPhrase }}
+                    </span>
+                  </Transition>
+                </div>
+              </div>
             </div>
           </div>
         </template>
@@ -585,7 +641,10 @@ onMounted(async () => {
       <!-- Sticky Input Bar -->
       <div class="p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0">
         <div class="max-w-4xl mx-auto space-y-2">
-          <form class="relative flex items-center gap-2" @submit.prevent="sendMessage()">
+          <form
+            class="relative flex items-center gap-2"
+            @submit.prevent="sendMessage()"
+          >
             <textarea
               v-model="inputMessage"
               rows="1"
@@ -601,8 +660,16 @@ onMounted(async () => {
               :disabled="!inputMessage.trim() || sending"
               title="Send message"
             >
-              <UIcon v-if="!sending" name="i-lucide-send" class="size-4" />
-              <UIcon v-else name="i-lucide-loader-2" class="size-4 animate-spin" />
+              <UIcon
+                v-if="!sending"
+                name="i-lucide-send"
+                class="size-4"
+              />
+              <UIcon
+                v-else
+                name="i-lucide-loader-2"
+                class="size-4 animate-spin"
+              />
             </button>
           </form>
         </div>

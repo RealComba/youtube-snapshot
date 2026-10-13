@@ -134,8 +134,7 @@ export default defineEventHandler(async (event) => {
     await redis.set(cacheKey, result, { ex: CACHE_TTL_SECONDS })
 
     return { channelId: channel.id, ...result, cached: false }
-  }
-  catch (error: any) {
+  } catch (error: any) {
     if (error.statusCode) throw error
 
     throw createError({
@@ -145,7 +144,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
-
 
 function extractText(response: GeminiGenerateContentResponse): string {
   const parts = response.candidates?.[0]?.content?.parts ?? []

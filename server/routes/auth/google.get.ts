@@ -59,10 +59,10 @@ export default defineOAuthGoogleEventHandler({
       const channelItem = ytResponse.items?.[0]
       if (channelItem) {
         ownChannelId = channelItem.id
-        const thumbnail =
-          channelItem.snippet.thumbnails?.medium?.url ||
-          channelItem.snippet.thumbnails?.default?.url ||
-          ''
+        const thumbnail
+          = channelItem.snippet.thumbnails?.medium?.url
+            || channelItem.snippet.thumbnails?.default?.url
+            || ''
         const handle = channelItem.snippet.customUrl || null
 
         channelInfo = {

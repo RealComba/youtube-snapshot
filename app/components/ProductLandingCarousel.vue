@@ -105,7 +105,10 @@ onUnmounted(() => {
       <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
         Connect your
         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-500 border border-red-500/20 align-middle">
-          <UIcon name="i-simple-icons-youtube" class="size-6 sm:size-7 text-red-600 dark:text-red-500 shrink-0" />
+          <UIcon
+            name="i-simple-icons-youtube"
+            class="size-6 sm:size-7 text-red-600 dark:text-red-500 shrink-0"
+          />
           <span>YouTube</span>
         </span>
         channel to unlock AI growth insights
@@ -124,7 +127,10 @@ onUnmounted(() => {
           >
             <span>Connect with</span>
             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white text-neutral-900 font-extrabold text-xs shadow-xs">
-              <UIcon name="i-simple-icons-youtube" class="size-3.5 text-red-600" />
+              <UIcon
+                name="i-simple-icons-youtube"
+                class="size-3.5 text-red-600"
+              />
               YouTube
             </span>
           </button>
@@ -132,7 +138,10 @@ onUnmounted(() => {
       </div>
 
       <p class="text-[11px] text-muted flex items-center justify-center gap-1">
-        <UIcon name="i-lucide-shield-check" class="size-3.5 text-blue-500" />
+        <UIcon
+          name="i-lucide-shield-check"
+          class="size-3.5 text-blue-500"
+        />
         Official YouTube Data API OAuth • Read-only analytics access
       </p>
     </div>
@@ -145,14 +154,23 @@ onUnmounted(() => {
     >
       <!-- Animated Slide Transition Container (Fixed Uniform Height) -->
       <div class="relative h-[255px] overflow-hidden">
-        <Transition name="carousel-slide" mode="out-in">
-          <div :key="currentSlide" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center h-full">
+        <Transition
+          name="carousel-slide"
+          mode="out-in"
+        >
+          <div
+            :key="currentSlide"
+            class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center h-full"
+          >
             <!-- Left: Copy & Explanations (Uniform Height) -->
             <div class="lg:col-span-5 h-[230px] flex flex-col justify-between py-1">
               <div class="space-y-2">
                 <div class="flex items-center">
                   <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-neutral-200 dark:border dark:border-neutral-700 dark:bg-neutral-800 text-muted">
-                    <UIcon :name="slides[currentSlide]!.icon" class="size-3 text-primary" />
+                    <UIcon
+                      :name="slides[currentSlide]!.icon"
+                      class="size-3 text-primary"
+                    />
                     {{ slides[currentSlide]!.tag }}
                   </div>
                 </div>
@@ -167,7 +185,10 @@ onUnmounted(() => {
               </div>
 
               <div class="pt-1 text-xs font-medium text-primary flex items-center gap-1.5">
-                <UIcon name="i-lucide-check-circle-2" class="size-3.5 shrink-0" />
+                <UIcon
+                  name="i-lucide-check-circle-2"
+                  class="size-3.5 shrink-0"
+                />
                 <span class="truncate">{{ slides[currentSlide]!.highlight }}</span>
               </div>
             </div>
@@ -176,58 +197,100 @@ onUnmounted(() => {
             <div class="lg:col-span-7">
               <UCard class="border-2 border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-xs h-[230px] flex flex-col justify-center">
                 <!-- Mock 1: Channel Audit (MrBeast) -->
-                <div v-if="slides[currentSlide]!.previewType === 'audit'" class="space-y-2.5 p-1">
+                <div
+                  v-if="slides[currentSlide]!.previewType === 'audit'"
+                  class="space-y-2.5 p-1"
+                >
                   <div class="flex items-center gap-2.5">
                     <img
                       src="https://unavatar.io/youtube/MrBeast"
                       alt="MrBeast"
                       class="size-9 rounded-full object-cover ring-2 ring-primary/40 shrink-0"
-                    />
+                    >
                     <div>
-                      <h4 class="font-bold text-xs">MrBeast</h4>
-                      <p class="text-[10px] text-muted">@MrBeast • 350M subscribers</p>
+                      <h4 class="font-bold text-xs">
+                        MrBeast
+                      </h4>
+                      <p class="text-[10px] text-muted">
+                        @MrBeast • 350M subscribers
+                      </p>
                     </div>
                   </div>
 
                   <div class="grid grid-cols-3 gap-2 text-center">
                     <div class="p-1.5 rounded bg-neutral-100 dark:bg-neutral-800/80">
-                      <p class="text-sm font-bold text-primary">350M</p>
-                      <p class="text-[9px] text-muted">Subscribers</p>
+                      <p class="text-sm font-bold text-primary">
+                        350M
+                      </p>
+                      <p class="text-[9px] text-muted">
+                        Subscribers
+                      </p>
                     </div>
                     <div class="p-1.5 rounded bg-neutral-100 dark:bg-neutral-800/80">
-                      <p class="text-sm font-bold text-primary">65B</p>
-                      <p class="text-[9px] text-muted">Total Views</p>
+                      <p class="text-sm font-bold text-primary">
+                        65B
+                      </p>
+                      <p class="text-[9px] text-muted">
+                        Total Views
+                      </p>
                     </div>
                     <div class="p-1.5 rounded bg-neutral-100 dark:bg-neutral-800/80">
-                      <p class="text-sm font-bold text-primary">85M</p>
-                      <p class="text-[9px] text-muted">Avg / Video</p>
+                      <p class="text-sm font-bold text-primary">
+                        85M
+                      </p>
+                      <p class="text-[9px] text-muted">
+                        Avg / Video
+                      </p>
                     </div>
                   </div>
 
                   <div class="p-2 rounded-lg border border-primary/20 bg-primary/5 text-[11px] text-muted space-y-0.5">
                     <span class="font-semibold text-primary flex items-center gap-1 text-[11px]">
-                      <UIcon name="i-lucide-sparkles" class="size-3" />
+                      <UIcon
+                        name="i-lucide-sparkles"
+                        class="size-3"
+                      />
                       AI Cadence Insight
                     </span>
-                    <p class="line-clamp-2">Viral velocity pacing delivers high-stakes spectacle with 12.8% retention baseline.</p>
+                    <p class="line-clamp-2">
+                      Viral velocity pacing delivers high-stakes spectacle with 12.8% retention baseline.
+                    </p>
                   </div>
                 </div>
 
                 <!-- Mock 2: Viral Outlier (Squid Game) -->
-                <div v-else-if="slides[currentSlide]!.previewType === 'outlier'" class="space-y-2 p-1">
+                <div
+                  v-else-if="slides[currentSlide]!.previewType === 'outlier'"
+                  class="space-y-2 p-1"
+                >
                   <div class="relative rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 h-24 flex items-center justify-center">
                     <img
                       src="https://i.ytimg.com/vi/0e3GPea1Tyg/maxresdefault.jpg"
                       alt="$456,000 Squid Game in Real Life"
                       class="w-full h-full object-cover"
+                    >
+                    <UBadge
+                      label="🔥 4.2x Channel Benchmark"
+                      color="warning"
+                      variant="solid"
+                      class="absolute top-1.5 right-1.5 text-[10px] font-bold"
                     />
-                    <UBadge label="🔥 4.2x Channel Benchmark" color="warning" variant="solid" class="absolute top-1.5 right-1.5 text-[10px] font-bold" />
-                    <UBadge label="Long-form • 25:41" color="neutral" variant="solid" class="absolute bottom-1.5 right-1.5 text-[9px]" />
+                    <UBadge
+                      label="Long-form • 25:41"
+                      color="neutral"
+                      variant="solid"
+                      class="absolute bottom-1.5 right-1.5 text-[9px]"
+                    />
                   </div>
-                  <h4 class="font-bold text-xs truncate">$456,000 Squid Game In Real Life!</h4>
+                  <h4 class="font-bold text-xs truncate">
+                    $456,000 Squid Game In Real Life!
+                  </h4>
                   <div class="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800/60 text-[11px] space-y-0.5">
                     <p class="font-bold text-primary flex items-center gap-1 text-[11px]">
-                      <UIcon name="i-lucide-sparkles" class="size-3" />
+                      <UIcon
+                        name="i-lucide-sparkles"
+                        class="size-3"
+                      />
                       Why it went viral:
                     </p>
                     <p class="text-muted leading-relaxed line-clamp-2">
@@ -237,7 +300,10 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Mock 3: Compare Head-to-Head (Airrack vs Jakidale) -->
-                <div v-else-if="slides[currentSlide]!.previewType === 'compare'" class="space-y-2.5 p-1">
+                <div
+                  v-else-if="slides[currentSlide]!.previewType === 'compare'"
+                  class="space-y-2.5 p-1"
+                >
                   <div class="flex items-center justify-between text-xs font-bold pb-2 border-b border-neutral-100 dark:border-neutral-800">
                     <!-- Airrack (Channel A - Blue) -->
                     <div class="flex items-center gap-2 min-w-0">
@@ -245,7 +311,7 @@ onUnmounted(() => {
                         src="https://unavatar.io/youtube/airrack"
                         alt="Airrack"
                         class="size-7 rounded-full object-cover ring-2 ring-blue-500/40 shrink-0"
-                      />
+                      >
                       <div class="min-w-0 leading-tight">
                         <span class="text-blue-600 dark:text-blue-400 font-bold block truncate text-xs">Airrack</span>
                         <span class="text-[10px] text-muted font-normal block">15.4M Subs</span>
@@ -267,7 +333,7 @@ onUnmounted(() => {
                         src="https://unavatar.io/youtube/jakidale"
                         alt="Jakidale"
                         class="size-7 rounded-full object-cover ring-2 ring-rose-500/40 shrink-0"
-                      />
+                      >
                     </div>
                   </div>
 
@@ -279,8 +345,8 @@ onUnmounted(() => {
                         <span class="font-bold text-rose-500">740M Views</span>
                       </div>
                       <div class="h-2 rounded-full flex p-0.5 bg-neutral-200 dark:bg-neutral-800 gap-1 overflow-hidden">
-                        <div class="h-full rounded-full bg-blue-500 w-[78%]"></div>
-                        <div class="h-full rounded-full bg-rose-500 w-[22%]"></div>
+                        <div class="h-full rounded-full bg-blue-500 w-[78%]" />
+                        <div class="h-full rounded-full bg-rose-500 w-[22%]" />
                       </div>
                     </div>
 
@@ -291,8 +357,8 @@ onUnmounted(() => {
                         <span class="font-bold text-rose-500">220K Avg</span>
                       </div>
                       <div class="h-2 rounded-full flex p-0.5 bg-neutral-200 dark:bg-neutral-800 gap-1 overflow-hidden">
-                        <div class="h-full rounded-full bg-blue-500 w-[85%]"></div>
-                        <div class="h-full rounded-full bg-rose-500 w-[15%]"></div>
+                        <div class="h-full rounded-full bg-blue-500 w-[85%]" />
+                        <div class="h-full rounded-full bg-rose-500 w-[15%]" />
                       </div>
                     </div>
 
@@ -304,20 +370,32 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Mock 4: AI Assistant Chat -->
-                <div v-else-if="slides[currentSlide]!.previewType === 'assistant'" class="space-y-2.5 p-1">
+                <div
+                  v-else-if="slides[currentSlide]!.previewType === 'assistant'"
+                  class="space-y-2.5 p-1"
+                >
                   <div class="flex items-start gap-2">
-                    <div class="size-5 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-[9px] font-bold shrink-0">You</div>
+                    <div class="size-5 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-[9px] font-bold shrink-0">
+                      You
+                    </div>
                     <div class="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-[11px] text-muted max-w-[85%]">
                       What video idea should I film next to boost CTR in tech?
                     </div>
                   </div>
                   <div class="flex items-start gap-2">
                     <div class="size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                      <UIcon name="i-lucide-sparkles" class="size-3" />
+                      <UIcon
+                        name="i-lucide-sparkles"
+                        class="size-3"
+                      />
                     </div>
                     <div class="p-2 rounded-lg bg-primary/10 text-[11px] text-neutral-800 dark:text-neutral-200 space-y-0.5 max-w-[90%]">
-                      <p class="font-bold text-primary text-[11px]">Winning formula for this week:</p>
-                      <p class="text-muted leading-tight">"Why Everyone Is Wrong About [New Tool]": taps into controversy bias with 4.5% higher CTR.</p>
+                      <p class="font-bold text-primary text-[11px]">
+                        Winning formula for this week:
+                      </p>
+                      <p class="text-muted leading-tight">
+                        "Why Everyone Is Wrong About [New Tool]": taps into controversy bias with 4.5% higher CTR.
+                      </p>
                     </div>
                   </div>
                 </div>
