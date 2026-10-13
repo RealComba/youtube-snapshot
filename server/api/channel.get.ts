@@ -136,7 +136,7 @@ const clientIdentifier = getRequestIP(event, { xForwardedFor: true }) ?? 'unknow
         data: {
           channelId: payload.id,
           subscriberCount: payload.subscriberCount,
-          viewCount: payload.viewCount,
+          viewCount: BigInt(payload.viewCount),
           videoCount: payload.videoCount
         }
       })

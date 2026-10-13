@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { button } from '#build/ui'
-
 definePageMeta({ middleware: 'auth' })
 
 const { formatNumber } = useFormatters()

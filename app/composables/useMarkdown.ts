@@ -1,4 +1,5 @@
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 
 marked.setOptions({
   gfm: true,
@@ -7,5 +8,6 @@ marked.setOptions({
 
 export function renderMarkdown(content: string): string {
   if (!content) return ''
-  return marked.parse(content) as string
+  const rawHtml = marked.parse(content) as string
+  return DOMPurify.sanitize(rawHtml)
 }

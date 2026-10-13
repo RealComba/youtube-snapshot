@@ -102,7 +102,7 @@ watch(() => route.fullPath, () => {
 
         <div class="p-4 border-t border-neutral-200 dark:border-neutral-800">
             <UPopover mode="click" :popper="{ placement: 'right-end' }" class="w-full">
-                <div class="flex items-center justify-between gap-2 p-2 -mx-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer cursor-pointer">
+                <div class="flex items-center justify-between gap-2 p-2 -mx-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer">
                     <div class="flex items-center gap-2.5 min-w-0">
                         <UAvatar :src="user?.image || undefined" :alt="user?.name || 'User'" size="sm" />
                         <div class="min-w-0">

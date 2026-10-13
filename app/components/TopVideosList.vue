@@ -1,6 +1,26 @@
 <script setup lang="ts">
+import type { ChannelData, VideoData } from '~/stores/channel'
+
+const props = defineProps<{
+  videos?: VideoData[]
+  channel?: ChannelData | null
+  avgViews?: number
+}>()
+
 const store = useChannelStore()
 const { formatNumber, formatDate, formatDuration } = useFormatters()
+
+const activeVideos = computed(() => props.videos ?? store.videos)
+const activeChannel = computed(() => props.channel ?? store.channel)
+const activeAvgViews = computed(() => {
+  if (props.avgViews !== undefined) return props.avgViews
+  if (props.videos) {
+    if (props.videos.length === 0) return 0
+    const total = props.videos.reduce((sum, v) => sum + v.viewCount, 0)
+    return Math.round(total / props.videos.length)
+  }
+  return store.avgViews
+})
 
 const viewsPerHour = (video: any): number => {
   const published = new Date(video.publishedAt).getTime()
@@ -110,11 +130,11 @@ function engagementRate(video: { viewCount: number, likeCount: number, commentCo
 }
 
 function performanceMultiplier(viewCount: number) {
-  if (store.avgViews === 0) return 0
-  return viewCount / store.avgViews
+  if (activeAvgViews.value === 0) return 0
+  return viewCount / activeAvgViews.value
 }
 
-function getSeoHealth(video: typeof store.videos[number]) {
+function getSeoHealth(video: any) {
   let score = 50
   const len = video.title.length
   if (len >= 40 && len <= 70) score += 20
@@ -157,7 +177,7 @@ function getSeoHealth(video: typeof store.videos[number]) {
   }
 }
 
-async function fetchVideoDiagnosis(video: typeof store.videos[number]) {
+async function fetchVideoDiagnosis(video: any) {
   if (videoInsights.value[video.id] || diagnosisLoading.value) return
 
   diagnosisLoading.value = true
@@ -173,8 +193,8 @@ async function fetchVideoDiagnosis(video: typeof store.videos[number]) {
         commentCount: video.commentCount,
         durationSeconds: video.durationSeconds,
         isShort: video.isShort,
-        channelTitle: store.channel?.title,
-        avgViews: store.avgViews
+        channelTitle: activeChannel.value?.title,
+        avgViews: activeAvgViews.value
       }
     })
     videoInsights.value[video.id] = res
@@ -203,7 +223,7 @@ async function fetchVideoDiagnosis(video: typeof store.videos[number]) {
 }
 
 const filteredVideos = computed(() => {
-  let result = [...store.videos]
+  let result = [...activeVideos.value]
 
   if (filterType.value === 'outlier') result = result.filter(v => performanceMultiplier(v.viewCount) >= 1.5)
   if (filterType.value === 'short') result = result.filter(v => v.isShort)
@@ -243,7 +263,7 @@ const filterOptions = [
 </script>
 
 <template>
-  <div v-if="store.videos.length > 0">
+  <div v-if="activeVideos.length > 0">
     <!-- Header with controls -->
     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
       <div class="flex items-center gap-2">
@@ -328,7 +348,7 @@ const filterOptions = [
     </div>
 
     <!-- Load More Button (10 videos at a time) -->
-    <div v-if="filteredVideos.length > 0 && store.hasMoreVideos" class="flex flex-col items-center justify-center pt-8 pb-4">
+    <div v-if="filteredVideos.length > 0 && !props.videos && store.hasMoreVideos" class="flex flex-col items-center justify-center pt-8 pb-4">
       <UButton
         label="Load More Videos"
         icon="i-lucide-plus"
@@ -340,10 +360,10 @@ const filterOptions = [
         @click="store.loadMoreVideos()"
       />
       <p class="text-xs text-muted mt-2">
-        Showing {{ store.videos.length }} of {{ store.channel?.videoCount || store.videos.length }} uploads
+        Showing {{ activeVideos.length }} of {{ activeChannel?.videoCount || activeVideos.length }} uploads
       </p>
     </div>
-    <div v-else-if="filteredVideos.length > 0 && store.videos.length >= 50" class="text-center pt-6 pb-2 text-xs text-muted">
+    <div v-else-if="filteredVideos.length > 0 && activeVideos.length >= 50" class="text-center pt-6 pb-2 text-xs text-muted">
       Showing maximum 50 recent uploads
     </div>
 
@@ -485,16 +505,16 @@ const filterOptions = [
                   </div>
                   
                   <div class="flex items-center gap-4 pt-2">
-                    <img :src="store.channel?.thumbnail" alt="Channel avatar" class="size-10 rounded-full border border-neutral-800" />
+                    <img :src="activeChannel?.thumbnail" alt="Channel avatar" class="size-10 rounded-full border border-neutral-800" />
                     <div class="flex-1 flex items-center gap-3">
-                      <span class="font-bold text-white text-base">{{ store.channel?.title }}</span>
+                      <span class="font-bold text-white text-base">{{ activeChannel?.title }}</span>
                       <UBadge color="neutral" variant="soft" class="rounded-full bg-neutral-800/50 text-neutral-300 font-medium">
                          <UIcon name="i-lucide-users" class="size-3.5 mr-1" />
-                         {{ formatNumber(store.channel?.subscriberCount ?? 0) }} subs
+                         {{ formatNumber(activeChannel?.subscriberCount ?? 0) }} subs
                       </UBadge>
                       <UBadge color="neutral" variant="soft" class="rounded-full bg-neutral-800/50 text-neutral-300 font-medium">
                          <UIcon name="i-lucide-bar-chart" class="size-3.5 mr-1" />
-                         {{ formatNumber(store.avgViews) }} avg views
+                         {{ formatNumber(activeAvgViews) }} avg views
                       </UBadge>
                     </div>
                   </div>
@@ -731,8 +751,8 @@ const filterOptions = [
                       <div class="space-y-2">
                         <h4 class="text-base font-bold text-white leading-tight line-clamp-3">{{ selectedVideo.title }}</h4>
                         <div class="flex items-center gap-2 mt-2">
-                          <img :src="store.channel?.thumbnail" alt="Avatar" class="size-6 rounded-full" />
-                          <span class="text-sm font-medium text-neutral-300">{{ store.channel?.title }}</span>
+                          <img :src="activeChannel?.thumbnail" alt="Avatar" class="size-6 rounded-full" />
+                          <span class="text-sm font-medium text-neutral-300">{{ activeChannel?.title }}</span>
                         </div>
                         <p class="text-xs text-neutral-500 mt-1">
                           {{ formatDate(selectedVideo.publishedAt) }} • {{ formatNumber(selectedVideo.viewCount) }} views

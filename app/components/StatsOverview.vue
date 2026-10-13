@@ -1,12 +1,22 @@
 <script setup lang="ts">
+import type { ChannelData } from '~/stores/channel'
+
+const props = defineProps<{
+  channel?: ChannelData | null
+  avgViews?: number
+}>()
+
 const store = useChannelStore()
 const { formatNumber } = useFormatters()
 const { user } = useUserSession()
 
-function navigateToAiChat() {
-  if (!store.channel) return
+const activeChannel = computed(() => props.channel ?? store.channel)
+const activeAvgViews = computed(() => props.avgViews ?? store.avgViews)
 
-  const channel = store.channel
+function navigateToAiChat() {
+  const channel = activeChannel.value
+  if (!channel) return
+
   let resolvedHandle = channel.handle
   if (!resolvedHandle && user.value?.ownChannel?.id === channel.id && user.value.ownChannel.handle) {
     resolvedHandle = user.value.ownChannel.handle
@@ -25,7 +35,7 @@ function navigateToAiChat() {
 - Subscribers: ${channel.subscriberCount.toLocaleString()}
 - Total Lifetime Views: ${channel.viewCount.toLocaleString()}
 - Total Uploads: ${channel.videoCount.toLocaleString()}
-- Average Views per Recent Upload: ${store.avgViews.toLocaleString()}
+- Average Views per Recent Upload: ${activeAvgViews.value.toLocaleString()}
 
 Please deliver an in-depth strategic breakdown:
 1. Channel Velocity & Market Scale: Evaluate this creator's current audience momentum, reach, and positioning in their niche.
@@ -46,24 +56,24 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
 </script>
 
 <template>
-  <UCard v-if="store.channel" class="overflow-hidden">
+  <UCard v-if="activeChannel" class="overflow-hidden">
     <!-- Channel Header & Actions -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-neutral-100 dark:border-neutral-800">
       <div class="flex items-start sm:items-center gap-4 min-w-0">
         <UAvatar
-          :src="store.channel.thumbnail"
-          :alt="store.channel.title"
+          :src="activeChannel.thumbnail"
+          :alt="activeChannel.title"
           size="xl"
           class="ring-2 ring-primary/20 shrink-0 size-16"
         />
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <h2 class="text-xl sm:text-2xl font-bold tracking-tight truncate">
-              {{ store.channel.title }}
+              {{ activeChannel.title }}
             </h2>
             <UBadge
-              v-if="store.channel.handle"
-              :label="store.channel.handle.startsWith('@') ? store.channel.handle : `@${store.channel.handle}`"
+              v-if="activeChannel.handle"
+              :label="activeChannel.handle.startsWith('@') ? activeChannel.handle : `@${activeChannel.handle}`"
               color="neutral"
               variant="subtle"
               size="xs"
@@ -71,7 +81,7 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
             />
           </div>
           <p class="text-sm text-muted line-clamp-2 mt-1 max-w-2xl">
-            {{ store.channel.description || 'No description provided for this channel.' }}
+            {{ activeChannel.description || 'No description provided for this channel.' }}
           </p>
         </div>
       </div>
@@ -79,7 +89,7 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
       <!-- Action Buttons -->
       <div class="flex items-center gap-2 shrink-0 self-start md:self-center">
         <a
-          :href="`https://youtube.com/channel/${store.channel.id}`"
+          :href="`https://youtube.com/channel/${activeChannel.id}`"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -116,7 +126,7 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
-          {{ formatNumber(store.channel.subscriberCount) }}
+          {{ formatNumber(activeChannel.subscriberCount) }}
         </p>
         <span class="text-[11px] text-muted">Audience size</span>
       </div>
@@ -130,7 +140,7 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
-          {{ formatNumber(store.channel.viewCount) }}
+          {{ formatNumber(activeChannel.viewCount) }}
         </p>
         <span class="text-[11px] text-muted">Lifetime impressions</span>
       </div>
@@ -144,7 +154,7 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
-          {{ formatNumber(store.channel.videoCount) }}
+          {{ formatNumber(activeChannel.videoCount) }}
         </p>
         <span class="text-[11px] text-muted">Published uploads</span>
       </div>
@@ -158,7 +168,7 @@ Maintain your signature data-driven, practical, and punchy tone with clear Markd
           </div>
         </div>
         <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
-          {{ formatNumber(store.avgViews) }}
+          {{ formatNumber(activeAvgViews) }}
         </p>
         <span class="text-[11px] text-muted">Per recent upload</span>
       </div>

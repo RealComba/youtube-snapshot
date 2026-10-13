@@ -7,8 +7,8 @@ const store = useChannelStore()
 onMounted(() => {
   if (user.value?.ownChannel) {
     const target = user.value.ownChannel.handle || user.value.ownChannel.id
-    if (target && store.channel?.id !== user.value.ownChannel.id) {
-      store.search(target)
+    if (target) {
+      store.loadOwnChannel(target)
     }
   }
 })
@@ -37,17 +37,17 @@ onMounted(() => {
     <!-- If user has a linked YouTube channel -->
     <template v-if="user?.ownChannel">
       <!-- Loading Skeleton -->
-      <div v-if="store.loading" class="space-y-6">
+      <div v-if="store.ownLoading" class="space-y-6">
         <USkeleton class="h-40 w-full rounded-lg" />
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <USkeleton v-for="i in 6" :key="i" class="h-64 rounded-lg" />
         </div>
       </div>
 
-      <!-- Channel Analytics Section -->
-      <div v-else-if="store.channel" class="space-y-8">
-        <StatsOverview />
-        <TopVideosList />
+      <!-- Channel Analytics Section (Isolated from searched channels) -->
+      <div v-else-if="store.ownChannel" class="space-y-8">
+        <StatsOverview :channel="store.ownChannel" :avg-views="store.ownAvgViews" />
+        <TopVideosList :channel="store.ownChannel" :videos="store.ownVideos" :avg-views="store.ownAvgViews" />
       </div>
     </template>
 

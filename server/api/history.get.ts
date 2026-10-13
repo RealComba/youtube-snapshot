@@ -23,5 +23,9 @@ import { usePrisma } from '../utils/prisma'
         }
       })
     
-      return snapshots
+      return snapshots.map(s => ({
+        ...s,
+        viewCount: Number(s.viewCount)
+      }))
+      
     })
