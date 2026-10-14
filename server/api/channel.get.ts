@@ -85,8 +85,15 @@ export default defineEventHandler(async (event) => {
     key: config.youtubeApiKey
   }
 
-  if (handle) params.forHandle = String(handle)
-  if (id) params.id = String(id)
+  const rawTarget = String(handle || id || '').trim()
+  const cleanTarget = rawTarget.replace(/^@/, '')
+  const isChannelId = /^UC[\w-]{22}$/.test(cleanTarget) || (cleanTarget.startsWith('UC') && cleanTarget.length >= 20)
+
+  if (isChannelId || id) {
+    params.id = isChannelId ? cleanTarget : String(id)
+  } else {
+    params.forHandle = cleanTarget
+  }
 
   try {
     const response = await $fetch<YoutubeChannelListResponse>(
@@ -158,9 +165,10 @@ export default defineEventHandler(async (event) => {
 
 function buildChannelPayload(channel: NonNullable<YoutubeChannelListResponse['items']>[number], fallbackHandle?: string) {
   const customUrl = channel.snippet.customUrl
+  const isFallbackAnId = fallbackHandle ? /^@?UC[\w-]{20,}$/.test(fallbackHandle.trim()) : false
   const resolvedHandle = customUrl
     ? (customUrl.startsWith('@') ? customUrl : `@${customUrl}`)
-    : (fallbackHandle ? (fallbackHandle.startsWith('@') ? fallbackHandle : `@${fallbackHandle}`) : undefined)
+    : (!isFallbackAnId && fallbackHandle ? (fallbackHandle.startsWith('@') ? fallbackHandle : `@${fallbackHandle}`) : undefined)
 
   return {
     id: channel.id,

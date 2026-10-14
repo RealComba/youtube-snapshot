@@ -110,7 +110,12 @@ Return a valid JSON object strictly matching this schema:
     "nextAction": "Start your next upload directly in media res, cutting any greeting, and deliver on the main curiosity hook within 15 seconds."
   },
   "overallSummary": "1-2 sentence core takeaway summarizing this video's performance."
-}`
+}
+
+STRICT CONCISENESS & COMPLETION RULES:
+- Keep every textual analysis field concise, sharp, and punchy (1-2 complete sentences maximum, under 35 words per field).
+- Every sentence in every string field MUST conclude with complete terminal punctuation (. ! ?).
+- NEVER output unfinished sentences, dangling words, or truncated thoughts.`
 
 export default defineEventHandler(async (event) => {
   // 🔐 Auth guard: requires valid session or returns 401

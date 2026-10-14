@@ -23,7 +23,14 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  return snapshots.map(s => ({
+  interface SnapshotRecord {
+    subscriberCount: number
+    viewCount: bigint
+    videoCount: number
+    capturedAt: Date
+  }
+
+  return (snapshots as SnapshotRecord[]).map((s: SnapshotRecord) => ({
     ...s,
     viewCount: Number(s.viewCount)
   }))

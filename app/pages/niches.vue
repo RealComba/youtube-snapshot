@@ -186,10 +186,19 @@ function getVelocityBadge(vph: number) {
   }
 }
 
+// Video Diagnosis Modal state
+const selectedVideo = ref<NicheVideoItem | null>(null)
+const analysisModalOpen = ref(false)
+
+function openVideoAnalysis(video: NicheVideoItem) {
+  selectedVideo.value = video
+  analysisModalOpen.value = true
+}
+
 // Navigate to Channel Analyzer and immediately inspect creator
 async function analyzeChannel(channelId: string) {
-  await router.push('/')
-  channelStore.search(channelId)
+  await router.push({ path: '/', query: { channel: channelId } })
+  await channelStore.search(channelId)
 }
 
 // Jump to AI Chat with tailored trend diagnostic prompt
@@ -427,20 +436,18 @@ onMounted(() => {
         :ui="{ body: 'flex flex-col flex-1 p-4' }"
       >
         <!-- Thumbnail Container -->
-        <div class="relative shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
-          <a
-            :href="`https://www.youtube.com/watch?v=${video.id}`"
-            target="_blank"
-            rel="noopener"
-            class="block aspect-video"
-          >
+        <div
+          class="relative shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800 cursor-pointer"
+          @click="openVideoAnalysis(video)"
+        >
+          <div class="block aspect-video">
             <img
               :src="video.thumbnail"
               :alt="video.title"
               loading="lazy"
               class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
             >
-          </a>
+          </div>
 
           <!-- Top-Left Short Badge -->
           <div
@@ -475,7 +482,7 @@ onMounted(() => {
         <h3
           class="font-semibold text-sm mt-3 line-clamp-2 h-10 leading-snug group-hover:text-primary transition-colors cursor-pointer"
           :title="video.title"
-          @click="analyzeChannel(video.channelId)"
+          @click="openVideoAnalysis(video)"
         >
           {{ video.title }}
         </h3>
@@ -486,7 +493,7 @@ onMounted(() => {
             type="button"
             class="font-medium hover:text-neutral-900 dark:hover:text-white truncate max-w-[170px] text-left transition-colors cursor-pointer flex items-center gap-1.5"
             :title="`Analyze ${video.channelTitle}`"
-            @click="analyzeChannel(video.channelId)"
+            @click.stop="analyzeChannel(video.channelId)"
           >
             <span class="truncate">{{ video.channelTitle }}</span>
           </button>
@@ -528,7 +535,7 @@ onMounted(() => {
             variant="subtle"
             size="xs"
             class="font-semibold cursor-pointer"
-            @click="analyzeChannel(video.channelId)"
+            @click.stop="analyzeChannel(video.channelId)"
           />
 
           <div class="flex items-center gap-1">
@@ -589,5 +596,13 @@ onMounted(() => {
         />
       </div>
     </div>
+
+    <!-- Video Analysis Modal with 4-tab breakdown & AI diagnosis -->
+    <VideoAnalysisModal
+      v-model:open="analysisModalOpen"
+      :video="selectedVideo"
+      :channel="{ title: selectedVideo?.channelTitle, thumbnail: '', subscriberCount: 0 }"
+      :avg-views="avgViews"
+    />
   </div>
 </template>

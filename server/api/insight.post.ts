@@ -46,7 +46,10 @@ Point out real patterns:
 2. Mix and performance of Shorts vs long-form content.
 3. Standout outlier videos and a concrete hypothesis for why they performed well or underperformed.
 
-IMPORTANT: Always conclude with a complete, fully formed sentence. Never stop mid-thought or mid-sentence.`
+STRICT LENGTH & COMPLETION RULES:
+- STRICT WORD LIMIT: Keep your entire response under 100 words total.
+- FULL SENTENCES ONLY: Conclude your final thought cleanly with proper punctuation (. !).
+- NEVER cut off mid-thought or mid-sentence under any circumstances.`
 
 export default defineEventHandler(async (event) => {
   // 🔐 Auth guard: requires valid session or returns 401

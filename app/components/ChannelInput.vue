@@ -22,8 +22,14 @@ function searchExample(h: string) {
 function extractHandle(input: string): string {
   const trimmed = input.trim()
 
+  const channelMatch = trimmed.match(/youtube\.com\/channel\/(UC[\w-]{22})/)
+  if (channelMatch?.[1]) return channelMatch[1]
+
   const urlMatch = trimmed.match(/youtube\.com\/@([\w.-]+)/)
   if (urlMatch?.[1]) return urlMatch[1]
+
+  const customMatch = trimmed.match(/youtube\.com\/(?:c\/|user\/)?([\w.-]+)/)
+  if (customMatch?.[1]) return customMatch[1]
 
   return trimmed
 }

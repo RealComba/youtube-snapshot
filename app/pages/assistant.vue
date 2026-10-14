@@ -38,9 +38,9 @@ let thinkingTimer: ReturnType<typeof setInterval> | null = null
 
 const thinkingPhrase = computed(() => {
   const s = thinkingSeconds.value
-  if (s < 3) return 'Analyzing channel metrics & niche patterns...'
-  if (s < 7) return 'Drafting high-converting title hooks & blueprints...'
-  if (s < 12) return 'Polishing strategy & retention breakdown...'
+  if (s < 3) return 'Analyzing channel metrics...'
+  if (s < 7) return 'Cogitating'
+  if (s < 12) return 'Pondering...'
   return 'Finalizing comprehensive growth blueprint...'
 })
 
@@ -254,18 +254,23 @@ async function sendMessage(promptOverride?: string) {
   }
 }
 
+const streamingMessageId = ref<string | null>(null)
+const copiedMessageId = ref<string | null>(null)
+
 async function streamAssistantMessage(fullContent: string, messageId: string) {
   if (!activeSession.value) return
 
-  const assistantMsg: MessageItem = {
+  streamingMessageId.value = messageId
+
+  activeSession.value.messages.push({
     id: messageId,
     sessionId: activeSessionId.value!,
     role: 'assistant',
     content: '',
     createdAt: new Date().toISOString()
-  }
+  })
 
-  activeSession.value.messages.push(assistantMsg)
+  const targetIdx = activeSession.value.messages.length - 1
 
   // Scroll so the beginning of this assistant message is in view
   await nextTick()
@@ -280,14 +285,17 @@ async function streamAssistantMessage(fullContent: string, messageId: string) {
   return new Promise<void>((resolve) => {
     let currentLength = 0
     const totalLength = fullContent.length
-    const chunkSize = Math.max(6, Math.ceil(totalLength / 90))
-    const intervalMs = 25
+    const chunkSize = Math.max(5, Math.ceil(totalLength / 80))
+    const intervalMs = 20
 
     const intervalId = setInterval(() => {
       currentLength += chunkSize
       if (currentLength >= totalLength) {
-        assistantMsg.content = fullContent
+        if (activeSession.value?.messages[targetIdx]) {
+          activeSession.value.messages[targetIdx].content = fullContent
+        }
         clearInterval(intervalId)
+        streamingMessageId.value = null
         if (messageContainer.value) {
           messageContainer.value.scrollTo({
             top: messageContainer.value.scrollHeight,
@@ -296,7 +304,9 @@ async function streamAssistantMessage(fullContent: string, messageId: string) {
         }
         resolve()
       } else {
-        assistantMsg.content = fullContent.slice(0, currentLength)
+        if (activeSession.value?.messages[targetIdx]) {
+          activeSession.value.messages[targetIdx].content = fullContent.slice(0, currentLength)
+        }
         if (messageContainer.value) {
           messageContainer.value.scrollTo({
             top: messageContainer.value.scrollHeight,
@@ -323,8 +333,14 @@ function scrollToBottom() {
   })
 }
 
-function copyMessage(content: string) {
+function copyMessage(content: string, id?: string) {
   navigator.clipboard.writeText(content)
+  if (id) {
+    copiedMessageId.value = id
+    setTimeout(() => {
+      copiedMessageId.value = null
+    }, 2000)
+  }
 }
 
 const route = useRoute()
@@ -568,19 +584,20 @@ onMounted(async () => {
             >
               <!-- Message Header on Assistant -->
               <div
-                v-if="msg.role === 'assistant'"
-                class="flex items-center justify-between gap-4 pb-2"
+                v-if="msg.role === 'assistant' && msg.content && streamingMessageId !== msg.id"
+                class="flex items-center justify-between gap-4 pb-1"
               >
                 <button
                   type="button"
                   class="text-[10px] text-muted hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
-                  @click="copyMessage(msg.content)"
+                  @click="copyMessage(msg.content, msg.id)"
                 >
                   <UIcon
-                    name="i-lucide-copy"
+                    :name="copiedMessageId === msg.id ? 'i-lucide-check' : 'i-lucide-copy'"
                     class="size-3"
+                    :class="copiedMessageId === msg.id ? 'text-emerald-500' : ''"
                   />
-                  <span>Copy</span>
+                  <span>{{ copiedMessageId === msg.id ? 'Copied!' : 'Copy' }}</span>
                 </button>
               </div>
 
@@ -588,8 +605,18 @@ onMounted(async () => {
               <div
                 v-if="msg.role === 'assistant'"
                 class="chat-markdown"
-                v-html="renderMarkdown(msg.content)"
-              />
+              >
+                <div
+                  v-if="msg.content"
+                  class="inline"
+                  v-html="renderMarkdown(msg.content)"
+                />
+                <!-- Typing cursor animation while streaming -->
+                <span
+                  v-if="streamingMessageId === msg.id"
+                  class="inline-block w-1.5 h-4 ml-1 bg-primary rounded-xs animate-pulse align-middle"
+                />
+              </div>
               <p
                 v-else
                 class="whitespace-pre-wrap leading-relaxed"

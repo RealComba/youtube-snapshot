@@ -135,8 +135,10 @@ export const useChannelStore = defineStore('channel', () => {
     }
 
     try {
+      const clean = handle.trim().replace(/^@/, '')
+      const isId = /^UC[\w-]{22}$/.test(clean) || (clean.startsWith('UC') && clean.length >= 20)
       const channelData = await $fetch<ChannelData>('/api/channel', {
-        params: { handle }
+        params: isId ? { id: clean } : { handle }
       })
       channel.value = channelData
 

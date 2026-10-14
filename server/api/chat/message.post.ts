@@ -27,6 +27,12 @@ Your core competencies:
 3. Retention Pacing: First 15-30s hook formulas, pattern interrupts, and payoff delivery.
 4. Channel Strategy: Upload cadence, Shorts-to-Long-form funnel, and niche authority building.
 
+Strict Length & Completion Rules:
+- STRICT LENGTH LIMIT: Keep your response tightly focused, between 200 and 350 words (never exceed 400 words total).
+- Focus on the top 2-3 highest-leverage recommendations instead of an overwhelming laundry list.
+- COMPLETE THOUGHTS ONLY: Every sentence, bullet point, and recommendation MUST be fully finished and concluded with a period (.), exclamation mark (!), or question mark (?).
+- NEVER end mid-sentence, mid-word, or mid-thought under any circumstances. Always wrap up your response cleanly with a complete concluding sentence.
+
 Style & Formatting guidelines:
 - Be ultra-specific, data-driven, and actionable. Avoid vague fluff like "make good content".
 - Give concrete title examples, thumbnail briefs, and step-by-step scripts when relevant.
@@ -128,7 +134,7 @@ Tailor recommendations specifically to this creator's scale and niche whenever r
   const systemInstruction = BASE_SYSTEM_PROMPT + channelContext
 
   // 7. Format conversation for Gemini
-  const contents = pastMessages.map(msg => ({
+  const contents = pastMessages.map((msg: { role: string, content: string }) => ({
     role: msg.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: msg.content }]
   }))

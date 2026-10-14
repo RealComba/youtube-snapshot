@@ -1,6 +1,19 @@
 <script setup lang="ts">
 const store = useChannelStore()
 const { loggedIn } = useUserSession()
+const route = useRoute()
+
+onMounted(() => {
+  if (route.query.channel && typeof route.query.channel === 'string') {
+    store.search(route.query.channel)
+  }
+})
+
+watch(() => route.query.channel, (newChannel) => {
+  if (newChannel && typeof newChannel === 'string' && store.channel?.id !== newChannel) {
+    store.search(newChannel)
+  }
+})
 </script>
 
 <template>
